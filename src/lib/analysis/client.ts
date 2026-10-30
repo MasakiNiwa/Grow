@@ -18,7 +18,7 @@ export function analysis(): Remote {
   if (typeof Worker !== 'undefined') {
     try {
       const worker = new Worker(new URL('./analysis.worker.ts', import.meta.url), {
-        type: 'module',
+        name: 'analysis',
       });
       remote = Comlink.wrap<AnalysisApi>(worker) as unknown as Remote;
       return remote;

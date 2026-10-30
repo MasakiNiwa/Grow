@@ -11,3 +11,11 @@ export const APP_NAME = 'Grow';
 
 /** localStorage のキーや IndexedDB の DB 名に付ける接頭辞（同じ github.io のほかのサイトとぶつけない） */
 export const STORAGE_PREFIX = 'grow';
+
+export const LITERTLM_URL = 'https://github.com/google-ai-edge/LiteRT-LM';
+export const LITERTLM_DOCS_URL = 'https://ai.google.dev/edge/litert-lm';
+/** 同じ github.io でモデルを共有しているサイト */
+export const SHARED_MODEL_SITES = [
+  { name: 'LLLM Study', url: 'https://masakiniwa.github.io/LLLM-Study/' },
+  { name: 'Try Local', url: 'https://masakiniwa.github.io/Try-Local/' },
+];

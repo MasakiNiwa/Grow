@@ -1,7 +1,7 @@
 {
   "name": "grow",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Grow — 人間改善プログラム。性格・適性を知り、考え方を学び、ロールプレイで練習し、ふりかえる",
   "license": "MIT",
   "type": "module",
@@ -25,6 +25,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@litert-lm/core": "^0.18.0",
     "clsx": "^2.1.1",
     "comlink": "^4.4.2",
     "dexie": "^4.4.7",
@@ -33,6 +34,9 @@
     "lucide-react": "^1.65.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-cjk-friendly": "^2.3.3",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "wouter": "^3.13.0",

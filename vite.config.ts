@@ -4,6 +4,11 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import { VitePWA } from 'vite-plugin-pwa';
+import {
+  litertlmWasm,
+  LITERTLM_VERSION,
+  LITERTLM_WASM_DIR,
+} from './build/vite-plugin-litertlm-wasm.ts';
 import { cspPlugin } from './build/vite-plugin-csp.ts';
 
 const appPkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
@@ -15,6 +20,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    litertlmWasm(),
     cspPlugin(),
     VitePWA({
       // 入力中・生成中に勝手にリロードしないよう、更新はユーザーが選ぶ
@@ -45,10 +51,21 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // アプリシェルはプリキャッシュ。Wasm（1 ファイル 20〜35MB）は実際に使う 1 種類だけを実行時にキャッシュ
         globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globIgnores: ['litertlm-wasm/**'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/litertlm-wasm/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'litertlm-wasm',
+              expiration: { maxEntries: 6 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             urlPattern: ({ url }) => url.pathname.endsWith('/licenses.json'),
             handler: 'StaleWhileRevalidate',
@@ -64,6 +81,12 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appPkg.version),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+    __LITERTLM_VERSION__: JSON.stringify(LITERTLM_VERSION),
+    __LITERTLM_WASM_DIR__: JSON.stringify(LITERTLM_WASM_DIR),
+  },
+  worker: {
+    // LiteRT-LM の Wasm ローダーは importScripts() を使うため classic worker が必要
+    format: 'iife',
   },
   build: {
     target: 'es2022',

@@ -27,11 +27,18 @@ src/
   components/     UI 部品（ui/）・グラフ（charts/）
   features/
     assess/       知る: 診断の型・採点・登録（registry.ts）・設問（instruments/）
+    ai/           キャラクター・プロンプト・アプリの状態（JSON）・ツール・単発の生成
+    chat/         AI と話す（相棒＋2 人目のキャラクター）
+    cloud/        クラウド AI（接続先の切り替え・キーの保存・場面ごとの AI）
+    engine/       端末内の AI（LiteRT-LM）の読み込み
+    models/       モデルのダウンロード・取り込み・共有保存領域の一覧
     reflect/      ふりかえる: 分析ツールの登録（tools.ts）と各ツール
     settings/     設定（zustand + localStorage）
     help/         ヘルプの部品（ライセンス一覧・動作環境）
   lib/
     analysis/     分析の計算（純粋な関数）と Worker
+    cloud/        クラウド AI の API（Gemini・OpenAI・Claude・OpenRouter）と鍵の暗号化
+    llm/          LiteRT-LM の Worker・共通モデル保存領域（LLLM-Study と同じ仕様）
     db/           IndexedDB とバックアップ
   pages/          ページ
 ```
@@ -41,6 +48,17 @@ src/
 - **診断を足す**: `features/assess/types.ts` の `Instrument` を作り、`registry.ts` の `INSTRUMENTS` に足す。回答・採点・保存・結果のドリルダウン・バックアップは共通で動く
 - **分析ツールを足す**: コンポーネントを作り、`features/reflect/tools.ts` の `ANALYSIS_TOOLS` に 1 行足す。重い計算は `lib/analysis/analysis.ts` に関数を足すと Worker で動く
 - **テーブルを足す**: `lib/db/db.ts` の version を上げて stores に追加し、`lib/db/backup.ts` の schema と書き出し・復元に足す
+
+## AI の設計
+
+- **AI がなくても使える**: AI の機能はすべて上乗せ。AI が使えないときは、決まったひとこと（テンプレート）や外部の AI 用のプロンプトで代わりにする
+- **アプリの状態は構造化データで**: 最新の診断の要約（タイプ・5 特性・目立つ側面）を `<app_state>` の JSON で会話に添える（`features/ai/appContext.ts`）
+- **AI はツールでプログラムを使う**: 診断の一覧・側面の得点・前回との比較はツール（関数呼び出し）で、アプリが計算して返す（`features/ai/tools.ts`）
+- **複数のキャラクター**: 相棒が答えたあと、2 人目のキャラクターが別の視点から 1〜2 文を添える（メインの会話の履歴には入れない）
+- **場面ごとに AI を切り替え**: ひとこと・解説・チャット・ロールプレイ・分析へのコメントごとに接続先とモデルを選べる
+- **外部の AI に頼む**: アプリの AI で足りないときは、アプリが結果を JSON にしたプロンプトを作り、外部の AI に貼り付けてもらう
+- **モデルの保存**: LLLM-Study の [共通モデル保存仕様](https://github.com/MasakiNiwa/LLLM-Study/blob/main/docs/SHARED_MODEL_STORAGE.md) に従い、同じ github.io のサイトとモデルを共有する。端末のファイルとして書き出し・取り込みもできる
+- **API キー**: 1 つの合言葉で暗号化して保存し、一度解除すればすべてのクラウド AI のキーが使える。本番ビルドの CSP で通信先を API に限定する
 
 ## UI のきまり
 

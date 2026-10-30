@@ -37,6 +37,19 @@ const draft = z.object({
   updatedAt: z.number(),
 });
 
+const chat = z.object({
+  id: z.string(),
+  role: z.enum(['user', 'assistant']),
+  text: z.string(),
+  createdAt: z.number(),
+  context: z.string().optional(),
+  speaker: z.string().optional(),
+  aside: z.boolean().optional(),
+  thinking: z.string().optional(),
+  tools: z.array(z.string()).optional(),
+  error: z.string().optional(),
+});
+
 export const backupSchema = z.object({
   format: z.literal(BACKUP_FORMAT),
   version: z.number().int().max(BACKUP_VERSION),
@@ -45,19 +58,24 @@ export const backupSchema = z.object({
   data: z.object({
     results: z.array(result).default([]),
     drafts: z.array(draft).default([]),
+    chat: z.array(chat).default([]),
   }),
 });
 
 export type Backup = z.infer<typeof backupSchema>;
 
 export async function exportBackup(settings: Record<string, unknown>): Promise<Backup> {
-  const [results, drafts] = await Promise.all([db.results.toArray(), db.drafts.toArray()]);
+  const [results, drafts, chatRecords] = await Promise.all([
+    db.results.toArray(),
+    db.drafts.toArray(),
+    db.chat.toArray(),
+  ]);
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: Date.now(),
     settings,
-    data: { results, drafts },
+    data: { results, drafts, chat: chatRecords },
   };
 }
 
@@ -76,18 +94,17 @@ export function parseBackup(text: string): Backup {
 
 /** バックアップで今のデータを置き換える（1 つのトランザクション） */
 export async function restoreBackup(backup: Backup): Promise<void> {
-  await db.transaction('rw', db.results, db.drafts, async () => {
-    await db.results.clear();
-    await db.drafts.clear();
+  await db.transaction('rw', db.results, db.drafts, db.chat, async () => {
+    await Promise.all([db.results.clear(), db.drafts.clear(), db.chat.clear()]);
     await db.results.bulkAdd(backup.data.results);
     await db.drafts.bulkAdd(backup.data.drafts);
+    await db.chat.bulkAdd(backup.data.chat);
   });
 }
 
 /** すべてのデータを消す */
 export async function clearAllData(): Promise<void> {
-  await db.transaction('rw', db.results, db.drafts, async () => {
-    await db.results.clear();
-    await db.drafts.clear();
+  await db.transaction('rw', db.results, db.drafts, db.chat, async () => {
+    await Promise.all([db.results.clear(), db.drafts.clear(), db.chat.clear()]);
   });
 }

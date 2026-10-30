@@ -9,11 +9,22 @@ import {
   Shapes,
   Sparkles,
   Stethoscope,
+  Bot,
+  Cpu,
 } from 'lucide-react';
 import { PageBody, PageHeader } from '@/app/PageHeader';
 import { PILLAR_ITEMS } from '@/app/navItems';
 import { Card, Section } from '@/components/ui/Card';
-import { APP_TAGLINE, APP_TITLE, REPOSITORY_URL } from '@/lib/constants';
+import {
+  APP_TAGLINE,
+  APP_TITLE,
+  LITERTLM_DOCS_URL,
+  LITERTLM_URL,
+  REPOSITORY_URL,
+  SHARED_MODEL_SITES,
+} from '@/lib/constants';
+import { ModelStatusChip } from '@/features/engine/ModelStatusChip';
+import { PERSONAS } from '@/features/ai/personas';
 import { CapabilityCheck } from '@/features/help/CapabilityCheck';
 import { LicenseList } from '@/features/help/LicenseList';
 import { ALL_GROW_TYPES, TYPE_AXES } from '@/features/assess/instruments/bigfiveTypes';
@@ -61,6 +72,12 @@ export default function HelpPage() {
             <dd className="font-mono">v{__APP_VERSION__}</dd>
             <dt className="text-slate-500 dark:text-slate-400">ビルド日</dt>
             <dd className="font-mono">{__BUILD_DATE__}</dd>
+            <dt className="text-slate-500 dark:text-slate-400">推論エンジン</dt>
+            <dd className="font-mono">LiteRT-LM {__LITERTLM_VERSION__}</dd>
+            <dt className="text-slate-500 dark:text-slate-400">AI</dt>
+            <dd>
+              <ModelStatusChip className="max-w-56" />
+            </dd>
             <dt className="text-slate-500 dark:text-slate-400">ライセンス</dt>
             <dd>MIT License</dd>
             <dt className="text-slate-500 dark:text-slate-400">ソースコード</dt>
@@ -78,7 +95,8 @@ export default function HelpPage() {
               その繰り返しで少しずつ成長していくためのアプリです。
             </p>
             <p>
-              採点・タイプ分け・集計などの判断はプログラムが行います。AI（今後追加）は、その結果をもとにリアクション・解説・相談相手を担当します。AI
+              採点・タイプ分け・集計などの判断はプログラムが行います。AI
+              は、その結果をもとにリアクション・解説・相談相手を担当します。AI
               がなくても、すべての基本機能を使えます。
             </p>
           </Body>
@@ -144,6 +162,64 @@ export default function HelpPage() {
           </Body>
         </Section>
 
+        <Section collapsible title="AI のキャラクター" icon={<Bot />}>
+          <Body>
+            <p>
+              「設定 → AI のキャラクター」で、相棒（メインのキャラクター）と、別の視点から一言添える
+              2 人目を選べます。性格を自分で書く「カスタム」もあります。
+            </p>
+            <ul className="space-y-1">
+              {PERSONAS.map((p) => (
+                <li key={p.id}>
+                  {p.emoji} <strong>{p.name}</strong>：{p.tagline}
+                </li>
+              ))}
+            </ul>
+            <p>
+              AI には、最新の診断の結果の要約（タイプ・5
+              特性の得点など）を構造化データ（JSON）で伝え、必要なときは AI
+              がツールで記録を調べてから答えます。数字はアプリが計算したものだけを使い、AI
+              に計算させません。
+            </p>
+            <p>
+              結果の画面の「外部の AI 用にコピー」は、ChatGPT・Claude・Gemini などの高性能な AI
+              にそのまま貼り付けて、詳しい解説を頼むためのプロンプトです。
+            </p>
+          </Body>
+        </Section>
+
+        <Section collapsible title="AI の使い方（クラウド AI・端末内の AI）" icon={<Cpu />}>
+          <Body>
+            <p>
+              <strong>クラウド AI</strong>：Gemini・OpenAI・Claude・OpenRouter の API キーを「AI
+              の設定」で登録します。キーは 1 つの<strong>合言葉</strong>
+              で暗号化してこの端末に保存され、起動後に一度合言葉を入れると、すべてのキーが使えるようになります。通信先は
+              API のアドレスだけに限定しています。
+            </p>
+            <p>
+              <strong>端末内の AI</strong>：Google の{' '}
+              <ExtLink href={LITERTLM_URL}>LiteRT-LM</ExtLink> で、Gemma 4（Web
+              版）などのモデルをブラウザの中で動かします（WebGPU に対応した Chrome / Edge
+              推奨）。会話は端末の外に出ません。
+            </p>
+            <p>
+              モデルは、同じ github.io の他のサイト（
+              {SHARED_MODEL_SITES.map((x) => x.name).join('・')}
+              ）と共通の保存領域に保存され、どのサイトで保存したモデルも使えます。端末のファイルとして書き出して（バックアップ）、あとから取り込むこともできます。
+            </p>
+            <p>
+              「場面ごとの
+              AI」で、ひとこと・解説・チャット・ロールプレイ・分析へのコメントごとに使う AI
+              を変えられます（ひとことは軽いモデル、解説は賢いモデル、など）。
+            </p>
+            <p>
+              詳しくは <ExtLink href={LITERTLM_DOCS_URL}>LiteRT-LM のドキュメント</ExtLink>{' '}
+              を参照してください。WebGPU が使えないときは、chrome://gpu で GPU
+              アクセラレーションが有効か確かめてください。
+            </p>
+          </Body>
+        </Section>
+
         <Section collapsible title="データとプライバシー" icon={<ShieldCheck />}>
           <Body>
             <p>
@@ -164,7 +240,6 @@ export default function HelpPage() {
         <Section collapsible title="これからの予定" icon={<Sparkles />}>
           <Body>
             <ul className="list-disc space-y-1 pl-5">
-              <li>AI（クラウド AI の API・ブラウザ内で動くローカル AI）との連携</li>
               <li>学ぶ：考え方カード・クイズ・復習</li>
               <li>練習：場面ロールプレイ・改善トレーニング</li>
               <li>適性・興味（RIASEC）・価値観・認知のくせの診断</li>
@@ -194,6 +269,12 @@ export default function HelpPage() {
                 <li key={s}>{s}</li>
               ))}
             </ul>
+            <p className="font-semibold">AI モデル</p>
+            <p>
+              AI
+              モデルはアプリに含まれていません（ユーザーが入手します）。各モデルには、それぞれの利用規約・ライセンス（Gemma
+              Terms of Use など）が適用されます。
+            </p>
             <p className="font-semibold">利用しているオープンソースソフトウェア</p>
             <p className="text-slate-500 dark:text-slate-400">
               名前を押すとライセンスの全文を表示します（
