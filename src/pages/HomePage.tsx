@@ -11,6 +11,7 @@ import { formatDateTime } from '@/lib/utils/format';
 import { scaleFamily } from '@/features/assess/registry';
 import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
 import { CheckinCard } from '@/features/checkin/CheckinCard';
+import { WeeklyCard } from '@/features/reflect/WeeklyCard';
 
 /** ホーム: 4 つの柱の入口と、今の自分のまとめ */
 export default function HomePage() {
@@ -33,6 +34,7 @@ export default function HomePage() {
           </p>
         </section>
 
+        <WeeklyCard />
         <CheckinCard />
 
         {latest === null && (

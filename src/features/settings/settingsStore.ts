@@ -93,6 +93,8 @@ export interface Settings extends Omit<ConversationSettings, 'systemPrompt'> {
   checkinTags: string[];
   /** 睡眠時間も記録する */
   checkinSleep: boolean;
+  /** 最後に開いた週のレポートの週（月曜 0 時のミリ秒）。ホームの「先週のレポート」を出すかに使う */
+  weeklySeen: number;
   // ---- バックアップ ----
   /** 最後にデータを書き出した日時 */
   lastBackupAt: number | null;
@@ -149,6 +151,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
   checkinTags: [],
   checkinSleep: true,
+  weeklySeen: 0,
 
   lastBackupAt: null,
 };
@@ -183,6 +186,7 @@ export const useSettings = create<SettingsState>()(
 /** 端末ごとに決める設定（バックアップに含めない） */
 const DEVICE_ONLY: (keyof Settings)[] = [
   'lastBackupAt',
+  'weeklySeen',
   'backend',
   // クラウド AI の接続はキーと一緒に端末ごとに決める（バックアップから戻しても勝手に接続しない）
   'aiProvider',
