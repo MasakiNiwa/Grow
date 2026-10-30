@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { db } from './db';
+import { topicSchema } from '@/features/learn/types';
 
 /**
  * データのバックアップ（JSON に書き出し・読み込み）。
@@ -50,6 +51,30 @@ const chat = z.object({
   error: z.string().optional(),
 });
 
+const fsrsState = z.object({
+  due: z.number(),
+  stability: z.number(),
+  difficulty: z.number(),
+  elapsed_days: z.number(),
+  scheduled_days: z.number(),
+  learning_steps: z.number(),
+  reps: z.number(),
+  lapses: z.number(),
+  state: z.number(),
+  last_review: z.number().optional(),
+});
+
+const progress = z.object({
+  topicId: z.string(),
+  readAt: z.number().optional(),
+  due: z.number().optional(),
+  fsrs: fsrsState.optional(),
+  reviews: z.array(z.object({ at: z.number(), correct: z.number(), total: z.number() })),
+  practiced: z.number().optional(),
+});
+
+const customTopic = topicSchema.and(z.object({ importedAt: z.number() }));
+
 export const backupSchema = z.object({
   format: z.literal(BACKUP_FORMAT),
   version: z.number().int().max(BACKUP_VERSION),
@@ -59,23 +84,27 @@ export const backupSchema = z.object({
     results: z.array(result).default([]),
     drafts: z.array(draft).default([]),
     chat: z.array(chat).default([]),
+    topics: z.array(customTopic).default([]),
+    progress: z.array(progress).default([]),
   }),
 });
 
 export type Backup = z.infer<typeof backupSchema>;
 
 export async function exportBackup(settings: Record<string, unknown>): Promise<Backup> {
-  const [results, drafts, chatRecords] = await Promise.all([
+  const [results, drafts, chatRecords, topics, progressRecords] = await Promise.all([
     db.results.toArray(),
     db.drafts.toArray(),
     db.chat.toArray(),
+    db.topics.toArray(),
+    db.progress.toArray(),
   ]);
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: Date.now(),
     settings,
-    data: { results, drafts, chat: chatRecords },
+    data: { results, drafts, chat: chatRecords, topics, progress: progressRecords },
   };
 }
 
@@ -92,19 +121,23 @@ export function parseBackup(text: string): Backup {
   return parsed.data;
 }
 
+const TABLES = () => [db.results, db.drafts, db.chat, db.topics, db.progress];
+
 /** バックアップで今のデータを置き換える（1 つのトランザクション） */
 export async function restoreBackup(backup: Backup): Promise<void> {
-  await db.transaction('rw', db.results, db.drafts, db.chat, async () => {
-    await Promise.all([db.results.clear(), db.drafts.clear(), db.chat.clear()]);
+  await db.transaction('rw', TABLES(), async () => {
+    await Promise.all(TABLES().map((t) => t.clear()));
     await db.results.bulkAdd(backup.data.results);
     await db.drafts.bulkAdd(backup.data.drafts);
     await db.chat.bulkAdd(backup.data.chat);
+    await db.topics.bulkAdd(backup.data.topics);
+    await db.progress.bulkAdd(backup.data.progress);
   });
 }
 
 /** すべてのデータを消す */
 export async function clearAllData(): Promise<void> {
-  await db.transaction('rw', db.results, db.drafts, db.chat, async () => {
-    await Promise.all([db.results.clear(), db.drafts.clear(), db.chat.clear()]);
+  await db.transaction('rw', TABLES(), async () => {
+    await Promise.all(TABLES().map((t) => t.clear()));
   });
 }

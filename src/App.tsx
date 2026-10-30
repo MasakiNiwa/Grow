@@ -13,6 +13,7 @@ const KnowPage = lazy(() => import('@/pages/KnowPage'));
 const AssessRunPage = lazy(() => import('@/pages/AssessRunPage'));
 const ResultPage = lazy(() => import('@/pages/ResultPage'));
 const LearnPage = lazy(() => import('@/pages/LearnPage'));
+const TopicPage = lazy(() => import('@/pages/TopicPage'));
 const PracticePage = lazy(() => import('@/pages/PracticePage'));
 const ReflectPage = lazy(() => import('@/pages/ReflectPage'));
 const ChatPage = lazy(() => import('@/pages/ChatPage'));
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/know/take/:id" component={AssessRunPage} />
             <Route path="/know/result/:id" component={ResultPage} />
             <Route path="/learn" component={LearnPage} />
+            <Route path="/learn/:id" component={TopicPage} />
             <Route path="/practice" component={PracticePage} />
             <Route path="/reflect/:tool?" component={ReflectPage} />
             <Route path="/chat" component={ChatPage} />

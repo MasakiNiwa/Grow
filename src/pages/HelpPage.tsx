@@ -11,6 +11,7 @@ import {
   Stethoscope,
   Bot,
   Cpu,
+  GraduationCap,
 } from 'lucide-react';
 import { PageBody, PageHeader } from '@/app/PageHeader';
 import { PILLAR_ITEMS } from '@/app/navItems';
@@ -141,6 +142,21 @@ export default function HelpPage() {
           </Body>
         </Section>
 
+        <Section collapsible title="学ぶ（考え方カード）" icon={<GraduationCap />}>
+          <Body>
+            <p>
+              社会で生きていくための考え方を、短いカード（本文・ポイント・やってみよう・確認クイズ）で学びます。性格診断を受けていると、傾向に合ったカードを「あなたへのおすすめ」に出します（高め・低めの特性からプログラムが選びます）。
+            </p>
+            <p>
+              クイズの正答率から、記憶のアルゴリズム（FSRS）が次の復習日を決め、その日になると「今日の復習」に出ます。選択肢の順番は毎回入れ替わります。
+            </p>
+            <p>
+              「外部の AI で作る」では、テーマを決めてプロンプトをコピーし、ChatGPT・Claude・Gemini
+              などが返した JSON を貼り付けると、形式を確かめてからカードとして取り込みます。
+            </p>
+          </Body>
+        </Section>
+
         <Section collapsible title="Grow タイプ（16 タイプ）" icon={<Shapes />}>
           <Body>
             <p>
@@ -240,7 +256,6 @@ export default function HelpPage() {
         <Section collapsible title="これからの予定" icon={<Sparkles />}>
           <Body>
             <ul className="list-disc space-y-1 pl-5">
-              <li>学ぶ：考え方カード・クイズ・復習</li>
               <li>練習：場面ロールプレイ・改善トレーニング</li>
               <li>適性・興味（RIASEC）・価値観・認知のくせの診断</li>
             </ul>

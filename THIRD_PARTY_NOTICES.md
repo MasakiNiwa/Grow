@@ -21,6 +21,7 @@
 | **remark-gfm** | 4.0.1 | MIT | https://github.com/remarkjs/remark-gfm |
 | **sonner** | 2.0.8 | MIT | https://github.com/emilkowalski/sonner |
 | **tailwind-merge** | 3.7.0 | MIT | https://github.com/dcastil/tailwind-merge |
+| **ts-fsrs** | 5.4.2 | MIT | https://github.com/open-spaced-repetition/ts-fsrs |
 | **wouter** | 3.13.0 | Unlicense | https://github.com/molefrog/wouter |
 | **zod** | 4.6.7 | MIT | https://github.com/colinhacks/zod |
 | **zustand** | 5.0.16 | MIT | https://github.com/pmndrs/zustand |

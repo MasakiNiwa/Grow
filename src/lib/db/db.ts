@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import { STORAGE_PREFIX } from '@/lib/constants';
 import type { AssessmentDraft, AssessmentResult } from '@/features/assess/types';
 import type { ChatRecord } from '@/features/chat/types';
+import type { CustomTopic, TopicProgress } from '@/features/learn/types';
 
 /**
  * アプリのデータ（端末内の IndexedDB）。
@@ -11,6 +12,8 @@ export class GrowDB extends Dexie {
   results!: EntityTable<AssessmentResult, 'id'>;
   drafts!: EntityTable<AssessmentDraft, 'instrumentId'>;
   chat!: EntityTable<ChatRecord, 'id'>;
+  topics!: EntityTable<CustomTopic, 'id'>;
+  progress!: EntityTable<TopicProgress, 'topicId'>;
 
   constructor(name = `${STORAGE_PREFIX}`) {
     super(name);
@@ -20,6 +23,8 @@ export class GrowDB extends Dexie {
     });
     // v2: AI とのチャット
     this.version(2).stores({ chat: 'id, createdAt' });
+    // v3: 学ぶ（取り込んだトピック・進み具合）
+    this.version(3).stores({ topics: 'id, importedAt', progress: 'topicId, due' });
   }
 }
 
