@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta
+      name="description"
+      content="Grow — 人間改善プログラム。性格・適性を知り、社会で生きるための考え方を学び、ロールプレイで練習し、記録をふりかえる。AI がなくても使え、AI を使うと一緒に考えてくれます。"
+    />
+    <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <title>Grow</title>
+    <script>
+      // 初回描画前にテーマを適用してちらつきを防ぐ
+      try {
+        var s = JSON.parse(localStorage.getItem('grow:settings') || '{}').state || {};
+        var t = s.theme || 'system';
+        document.documentElement.dataset.darkPalette = s.darkPalette || 'neutral';
+        if (
+          t === 'dark' ||
+          (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
