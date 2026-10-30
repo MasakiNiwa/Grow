@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { GitCompareArrows, LineChart, ListTree, type LucideIcon } from 'lucide-react';
+import { Dumbbell, GitCompareArrows, LineChart, ListTree, type LucideIcon } from 'lucide-react';
 
 /**
  * 分析ツールの登録先（ふりかえるページ）。
@@ -35,5 +35,12 @@ export const ANALYSIS_TOOLS: AnalysisTool[] = [
     description: '結果を、特性 → 側面 → 設問ごとの回答まで掘り下げる',
     icon: ListTree,
     component: lazy(() => import('./DrillTool')),
+  },
+  {
+    id: 'practice',
+    title: '練習の記録',
+    description: '練習の回数・ロールプレイの得点・考え方の整理の効果',
+    icon: Dumbbell,
+    component: lazy(() => import('./PracticeTool')),
   },
 ];

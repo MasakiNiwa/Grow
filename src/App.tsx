@@ -15,6 +15,9 @@ const ResultPage = lazy(() => import('@/pages/ResultPage'));
 const LearnPage = lazy(() => import('@/pages/LearnPage'));
 const TopicPage = lazy(() => import('@/pages/TopicPage'));
 const PracticePage = lazy(() => import('@/pages/PracticePage'));
+const ScenarioPage = lazy(() => import('@/pages/ScenarioPage'));
+const AiRoleplayPage = lazy(() => import('@/pages/AiRoleplayPage'));
+const WorksheetPage = lazy(() => import('@/pages/WorksheetPage'));
 const ReflectPage = lazy(() => import('@/pages/ReflectPage'));
 const ChatPage = lazy(() => import('@/pages/ChatPage'));
 const AiPage = lazy(() => import('@/pages/AiPage'));
@@ -37,6 +40,9 @@ export default function App() {
             <Route path="/learn" component={LearnPage} />
             <Route path="/learn/:id" component={TopicPage} />
             <Route path="/practice" component={PracticePage} />
+            <Route path="/practice/roleplay/:id" component={ScenarioPage} />
+            <Route path="/practice/ai/:id" component={AiRoleplayPage} />
+            <Route path="/practice/work/:kind" component={WorksheetPage} />
             <Route path="/reflect/:tool?" component={ReflectPage} />
             <Route path="/chat" component={ChatPage} />
             <Route path="/ai" component={AiPage} />

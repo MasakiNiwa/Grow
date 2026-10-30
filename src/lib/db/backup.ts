@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { db } from './db';
 import { topicSchema } from '@/features/learn/types';
+import type { PracticeLog } from '@/features/practice/types';
 
 /**
  * データのバックアップ（JSON に書き出し・読み込み）。
@@ -73,6 +74,14 @@ const progress = z.object({
   practiced: z.number().optional(),
 });
 
+/** 練習の記録（中身は種類ごとに違うので、種類と日時だけ確かめる） */
+const log = z.object({
+  id: z.string(),
+  kind: z.enum(['roleplay', 'ai-roleplay', 'reframe', 'good-things', 'if-then']),
+  createdAt: z.number(),
+  data: z.record(z.string(), z.unknown()),
+});
+
 const customTopic = topicSchema.and(z.object({ importedAt: z.number() }));
 
 export const backupSchema = z.object({
@@ -86,25 +95,34 @@ export const backupSchema = z.object({
     chat: z.array(chat).default([]),
     topics: z.array(customTopic).default([]),
     progress: z.array(progress).default([]),
+    logs: z.array(log).default([]),
   }),
 });
 
 export type Backup = z.infer<typeof backupSchema>;
 
 export async function exportBackup(settings: Record<string, unknown>): Promise<Backup> {
-  const [results, drafts, chatRecords, topics, progressRecords] = await Promise.all([
+  const [results, drafts, chatRecords, topics, progressRecords, logs] = await Promise.all([
     db.results.toArray(),
     db.drafts.toArray(),
     db.chat.toArray(),
     db.topics.toArray(),
     db.progress.toArray(),
+    db.logs.toArray(),
   ]);
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: Date.now(),
     settings,
-    data: { results, drafts, chat: chatRecords, topics, progress: progressRecords },
+    data: {
+      results,
+      drafts,
+      chat: chatRecords,
+      topics,
+      progress: progressRecords,
+      logs: logs as unknown as Backup['data']['logs'],
+    },
   };
 }
 
@@ -121,7 +139,7 @@ export function parseBackup(text: string): Backup {
   return parsed.data;
 }
 
-const TABLES = () => [db.results, db.drafts, db.chat, db.topics, db.progress];
+const TABLES = () => [db.results, db.drafts, db.chat, db.topics, db.progress, db.logs];
 
 /** バックアップで今のデータを置き換える（1 つのトランザクション） */
 export async function restoreBackup(backup: Backup): Promise<void> {
@@ -132,6 +150,7 @@ export async function restoreBackup(backup: Backup): Promise<void> {
     await db.chat.bulkAdd(backup.data.chat);
     await db.topics.bulkAdd(backup.data.topics);
     await db.progress.bulkAdd(backup.data.progress);
+    await db.logs.bulkAdd(backup.data.logs as unknown as PracticeLog[]);
   });
 }
 

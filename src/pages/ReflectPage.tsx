@@ -15,7 +15,11 @@ export default function ReflectPage() {
     <>
       <PageHeader title="ふりかえる" />
       <PageBody wide>
-        <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="分析ツール">
+        <div
+          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+          role="tablist"
+          aria-label="分析ツール"
+        >
           {ANALYSIS_TOOLS.map((t) => {
             const active = t.id === current.id;
             return (

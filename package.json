@@ -1,7 +1,7 @@
 {
   "name": "grow",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Grow — 人間改善プログラム。性格・適性を知り、考え方を学び、ロールプレイで練習し、ふりかえる",
   "license": "MIT",
   "type": "module",

@@ -11,13 +11,15 @@ import { buildSystemPrompt } from './prompt';
 import { useAiBusy, type AiTask } from './aiBusy';
 
 export interface OneshotOptions {
-  task: Exclude<AiTask, 'chat' | 'roleplay'>;
+  task: Exclude<AiTask, 'chat'>;
   prompt: string;
   /** 前のやりとり（続けて質問するとき） */
   history?: ChatTurn[];
   maxOutputTokens?: number;
   /** true: 性格（口調）を付けず、教材づくり用の中立なシステムプロンプトで生成する */
   plain?: boolean;
+  /** システムプロンプトを差し替える（ロールプレイの相手役など） */
+  systemPrompt?: string;
   /** 生成中の本文（フレームごとにまとめて呼ばれる） */
   onText?: (text: string) => void;
   /**
@@ -104,7 +106,9 @@ export async function runOneshot(opts: OneshotOptions): Promise<OneshotResult> {
       {
         mode: 'oneshot',
         settings: {
-          systemPrompt: opts.plain ? PLAIN_SYSTEM_PROMPT : buildSystemPrompt(s, { tools: false }),
+          systemPrompt:
+            opts.systemPrompt ??
+            (opts.plain ? PLAIN_SYSTEM_PROMPT : buildSystemPrompt(s, { tools: false })),
           temperature: oneshotTemperature(opts.purpose ?? 'free', opts.attempt ?? 0, s),
           topK: s.topK,
           topP: s.topP,

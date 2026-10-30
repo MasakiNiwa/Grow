@@ -29,6 +29,7 @@ src/
     assess/       知る: 診断の型・採点・登録（registry.ts）・設問（instruments/）
     ai/           キャラクター・プロンプト・アプリの状態（JSON）・ツール・単発の生成
     learn/        学ぶ: 考え方カード（content/）・形式（zod）・復習（FSRS）・おすすめ・取り込み
+    practice/     練習: 場面（content/scenarios.ts）・AI ロールプレイ・ワークシート・記録
     chat/         AI と話す（相棒＋2 人目のキャラクター）
     cloud/        クラウド AI（接続先の切り替え・キーの保存・場面ごとの AI）
     engine/       端末内の AI（LiteRT-LM）の読み込み
@@ -48,6 +49,7 @@ src/
 
 - **診断を足す**: `features/assess/types.ts` の `Instrument` を作り、`registry.ts` の `INSTRUMENTS` に足す。回答・採点・保存・結果のドリルダウン・バックアップは共通で動く
 - **考え方カードを足す**: `features/learn/content/topics.ts` に足す（形式は `features/learn/types.ts` の `topicSchema`。テストで検証）。ユーザーはアプリ内で外部の AI に作ってもらって取り込める（`grow-learn-pack`）
+- **ロールプレイの場面を足す**: `features/practice/content/scenarios.ts` に足す（選択肢の行き先・満点の道はテストで検証）。`aiSetting` を書けば AI でも練習できる
 - **分析ツールを足す**: コンポーネントを作り、`features/reflect/tools.ts` の `ANALYSIS_TOOLS` に 1 行足す。重い計算は `lib/analysis/analysis.ts` に関数を足すと Worker で動く
 - **テーブルを足す**: `lib/db/db.ts` の version を上げて stores に追加し、`lib/db/backup.ts` の schema と書き出し・復元に足す
 
