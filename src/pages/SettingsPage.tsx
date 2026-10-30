@@ -28,8 +28,7 @@ import {
   restoreBackup,
   type Backup,
 } from '@/lib/db/backup';
-import { PersonaPicker } from '@/features/ai/PersonaPicker';
-import { CUSTOM_PERSONA_ID, PERSONAS } from '@/features/ai/personas';
+import { CharacterSettings } from '@/features/ai/CharacterSettings';
 import { useChat } from '@/features/chat/chatStore';
 import { ModelStatusChip } from '@/features/engine/ModelStatusChip';
 import {
@@ -209,39 +208,7 @@ export default function SettingsPage() {
           icon={<Users />}
           description="相棒と、別の視点から一言添える 2 人目を選べます"
         >
-          <Field label="相棒（メインのキャラクター）" stacked>
-            <PersonaPicker value={s.persona} onChange={(v) => update({ persona: v })} />
-          </Field>
-          {s.persona === CUSTOM_PERSONA_ID && (
-            <Field label="カスタムの性格" hint="口調・性格・話し方を自由に書いてください" stacked>
-              <textarea
-                value={s.customPersona}
-                onChange={(e) => update({ customPersona: e.target.value })}
-                rows={3}
-                placeholder="例: 関西弁で話す、明るくて面倒見のいい先輩"
-                className={textareaClass}
-              />
-            </Field>
-          )}
-          <Field
-            label="2 人目のキャラクター"
-            hint="チャットで相棒が答えたあと、別の視点から 1〜2 文を添えます（AI の生成が 1 回増えます）"
-            htmlFor="second-persona"
-          >
-            <Select
-              id="second-persona"
-              value={s.secondPersona}
-              onChange={(v) => update({ secondPersona: v })}
-              options={[
-                { value: '', label: 'なし' },
-                ...PERSONAS.filter((p) => p.id !== s.persona).map((p) => ({
-                  value: p.id,
-                  label: `${p.emoji} ${p.name}`,
-                })),
-              ]}
-              className="w-40"
-            />
-          </Field>
+          <CharacterSettings />
           <Field label="あなたの性別" htmlFor="user-gender" hint="任意。話題や例の参考にします">
             <Select
               id="user-gender"

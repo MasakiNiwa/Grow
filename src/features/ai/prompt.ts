@@ -21,7 +21,7 @@ export function buildSystemPrompt(
   s: Settings,
   options: { tools: boolean; persona?: Persona },
 ): string {
-  const persona = options.persona ?? getPersona(s.persona, s.customPersona);
+  const persona = options.persona ?? getPersona(s.persona, s);
   const lines = [
     'あなたは「Grow」（人間改善プログラム）というアプリの中にいるキャラクターです。Grow は、性格や適性を知り、社会で生きていくための考え方を学び、練習して、ふりかえるアプリです。',
     `【キャラクター】${persona.style}`,

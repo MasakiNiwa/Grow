@@ -8,7 +8,7 @@ import type { AssessmentResult } from '@/features/assess/types';
 import { toHistory } from '@/features/chat/chatStore';
 import { buildAppState, summarizeBigFive } from './appContext';
 import { bigFiveDeepDivePrompt } from './externalPrompt';
-import { CUSTOM_PERSONA_ID, PERSONAS, fillLine, getPersona } from './personas';
+import { CUSTOM2_PERSONA_ID, CUSTOM_PERSONA_ID, PERSONAS, fillLine, getPersona } from './personas';
 import { buildSecondVoicePrompt, buildSystemPrompt } from './prompt';
 import { executeTool } from './tools';
 
@@ -28,7 +28,17 @@ function result(id: string, createdAt: number, value: number): AssessmentResult 
 describe('キャラクターとプロンプト', () => {
   it('キャラクターの id は重複せず、カスタムは書いた性格を使う', () => {
     expect(new Set(PERSONAS.map((p) => p.id)).size).toBe(PERSONAS.length);
-    expect(getPersona(CUSTOM_PERSONA_ID, '関西弁').style).toBe('関西弁');
+    const custom = getPersona(CUSTOM_PERSONA_ID, {
+      customPersona: '関西弁',
+      customName: 'たこ',
+      customEmoji: '🐙',
+    });
+    expect(custom.style).toContain('関西弁');
+    expect(custom.name).toBe('たこ');
+    expect(custom.emoji).toBe('🐙');
+    const second = getPersona(CUSTOM2_PERSONA_ID, { secondCustomPersona: '皮肉屋' });
+    expect(second.name).toBe('カスタム 2');
+    expect(second.style).toContain('皮肉屋');
     expect(getPersona('unknown').id).toBe(PERSONAS[0].id);
     expect(fillLine('「{type}」だね', { type: '職人' })).toBe('「職人」だね');
   });

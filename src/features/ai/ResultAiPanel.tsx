@@ -12,14 +12,15 @@ import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
 import type { AssessmentResult } from '@/features/assess/types';
 import Markdown from '@/features/chat/markdown/Markdown';
 import { cancelAi, runOneshot } from './oneshot';
-import { fillLine, getPersona, pick } from './personas';
+import { fillLine, pick } from './personas';
+import { useMainPersona } from './usePersona';
 import { summarizeBigFive } from './appContext';
 import { bigFiveDeepDivePrompt } from './externalPrompt';
 
 /** 結果の画面の AI: キャラクターのひとこと・解説・チャットで掘り下げる・外部 AI 用のプロンプト */
 export function ResultAiPanel({ result }: { result: AssessmentResult }) {
   const s = useSettings();
-  const persona = getPersona(s.persona, s.customPersona);
+  const persona = useMainPersona();
   const ready = useAiReady();
   const type = growTypeOf(result.scores);
   const [reaction, setReaction] = useState(() =>

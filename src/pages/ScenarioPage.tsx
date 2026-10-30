@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ClearButton } from '@/components/ui/ClearButton';
 import { cn } from '@/lib/utils/cn';
-import { getPersona } from '@/features/ai/personas';
+import { useMainPersona } from '@/features/ai/usePersona';
 import { BUILTIN_TOPICS } from '@/features/learn/content/topics';
 import { Bubble } from '@/features/practice/Bubble';
 import { getScenario, maxScore, saveLog } from '@/features/practice/practiceData';
 import type { RoleplayData, Scenario } from '@/features/practice/types';
-import { useSettings } from '@/features/settings/settingsStore';
 
 type Step = { node: string; choice: number; score: number };
 
@@ -26,10 +25,7 @@ function finalComment(ratio: number): string {
 }
 
 function Run({ scenario }: { scenario: Scenario }) {
-  const persona = getPersona(
-    useSettings((s) => s.persona),
-    useSettings((s) => s.customPersona),
-  );
+  const persona = useMainPersona();
   const [steps, setSteps] = useState<Step[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
 

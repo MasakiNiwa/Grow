@@ -9,7 +9,8 @@ import { Chip } from '@/components/ui/Chip';
 import { ClearButton } from '@/components/ui/ClearButton';
 import { Slider } from '@/components/ui/Slider';
 import { errorMessage } from '@/lib/utils/format';
-import { getPersona, pick } from '@/features/ai/personas';
+import { pick } from '@/features/ai/personas';
+import { useMainPersona } from '@/features/ai/usePersona';
 import { runOneshot } from '@/features/ai/oneshot';
 import { useAiReady } from '@/features/cloud/aiClient';
 import Markdown from '@/features/chat/markdown/Markdown';
@@ -17,7 +18,6 @@ import { BUILTIN_TOPICS } from '@/features/learn/content/topics';
 import { saveLog } from '@/features/practice/practiceData';
 import { DISTORTIONS, WORKSHEETS, type WorksheetKind } from '@/features/practice/worksheets';
 import type { PracticeLog } from '@/features/practice/types';
-import { useSettings } from '@/features/settings/settingsStore';
 
 const inputClass =
   'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900';
@@ -241,10 +241,7 @@ export default function WorksheetPage() {
   const { kind } = useParams<{ kind: WorksheetKind }>();
   const [, navigate] = useLocation();
   const sheet = WORKSHEETS.find((w) => w.kind === kind);
-  const persona = getPersona(
-    useSettings((s) => s.persona),
-    useSettings((s) => s.customPersona),
-  );
+  const persona = useMainPersona();
   const [formKey, setFormKey] = useState(0);
   if (!sheet) {
     return (

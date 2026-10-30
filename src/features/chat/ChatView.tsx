@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowUp, Square, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
-import { getPersona } from '@/features/ai/personas';
+import { useMainPersona, usePersonaById } from '@/features/ai/usePersona';
 import { useSettings } from '@/features/settings/settingsStore';
 import Markdown from './markdown/Markdown';
 import { useChat, type ChatMessage } from './chatStore';
 
 function Avatar({ speaker }: { speaker?: string }) {
-  const custom = useSettings((s) => s.customPersona);
-  const p = getPersona(speaker ?? 'partner', custom);
+  const p = usePersonaById(speaker);
   return (
     <div className="flex shrink-0 flex-col items-center gap-0.5">
       <span className="flex size-9 items-center justify-center rounded-full bg-accent-50 text-lg dark:bg-accent-900/30">
@@ -63,6 +62,9 @@ function Message({ m }: { m: ChatMessage }) {
           </p>
         )}
         {m.status === 'cancelled' && <p className="mt-1 text-xs text-slate-400">（止めました）</p>}
+        {m.model && m.status !== 'streaming' && (
+          <p className="mt-1.5 text-right text-[0.65rem] text-slate-400">{m.model}</p>
+        )}
       </div>
     </div>
   );
@@ -83,8 +85,6 @@ export function ChatView() {
   const send = useChat((s) => s.send);
   const stop = useChat((s) => s.stop);
   const enterToSend = useSettings((s) => s.enterToSend);
-  const persona = useSettings((s) => s.persona);
-  const custom = useSettings((s) => s.customPersona);
   const [text, setText] = useState('');
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -98,7 +98,7 @@ export function ChatView() {
   const submit = (value = text) => {
     if (send(value)) setText('');
   };
-  const p = getPersona(persona, custom);
+  const p = useMainPersona();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

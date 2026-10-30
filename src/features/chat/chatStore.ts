@@ -10,7 +10,7 @@
 import { toast } from 'sonner';
 import { create } from 'zustand';
 import { db } from '@/lib/db/db';
-import { ai, aiReadyNow } from '@/features/cloud/aiClient';
+import { ai, aiReadyNow, modelLabel } from '@/features/cloud/aiClient';
 import type { ChatTurn, GenerationStats } from '@/lib/llm/types';
 import { errorMessage } from '@/lib/utils/format';
 import { createId } from '@/lib/utils/id';
@@ -123,8 +123,9 @@ export const useChat = create<ChatState>()((set, get) => {
   const secondVoice = async (user: ChatMessage, reply: ChatMessage) => {
     const settings = useSettings.getState();
     if (!settings.secondPersona || settings.secondPersona === settings.persona) return;
-    const main = getPersona(settings.persona, settings.customPersona);
-    const second = getPersona(settings.secondPersona);
+    if (!aiReadyNow('aside')) return;
+    const main = getPersona(settings.persona, settings);
+    const second = getPersona(settings.secondPersona, settings);
     const id = createId();
     const aside: ChatMessage = {
       id,
@@ -132,6 +133,7 @@ export const useChat = create<ChatState>()((set, get) => {
       text: '',
       speaker: second.id,
       aside: true,
+      model: modelLabel('aside'),
       createdAt: Date.now(),
       status: 'streaming',
     };
@@ -162,7 +164,7 @@ export const useChat = create<ChatState>()((set, get) => {
           if (ev.type === 'delta' && !ev.channel) stream.push(ev.text);
         },
         undefined,
-        'chat',
+        'aside',
       );
       const view = stream.end();
       if (!view.text.trim()) {
@@ -194,6 +196,7 @@ export const useChat = create<ChatState>()((set, get) => {
       role: 'assistant',
       text: '',
       speaker: settings.persona,
+      model: modelLabel('chat'),
       createdAt: Date.now(),
       status: 'streaming',
     };
