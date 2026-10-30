@@ -20,6 +20,8 @@ import { growTypeOf, TYPE_AXES } from '@/features/assess/instruments/bigfiveType
 import { DOMAIN_INSIGHTS } from '@/features/assess/instruments/bigfiveInsights';
 import type { AssessmentResult } from '@/features/assess/types';
 import { ResultAiPanel } from '@/features/ai/ResultAiPanel';
+import { RiasecSummary } from '@/features/assess/components/RiasecSummary';
+import { ValuesSummary } from '@/features/assess/components/ValuesSummary';
 
 function TypeCard({ result }: { result: AssessmentResult }) {
   const type = growTypeOf(result.scores);
@@ -200,7 +202,9 @@ export default function ResultPage() {
         </div>
         <ResponseStyleNotice result={result} />
         {isBigFive && <TypeCard result={result} />}
-        {isBigFive && <ResultAiPanel result={result} />}
+        {result.instrumentId.startsWith('riasec') && <RiasecSummary result={result} />}
+        {result.instrumentId.startsWith('values') && <ValuesSummary result={result} />}
+        <ResultAiPanel result={result} />
         {isBigFive && (
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400">5 つの特性</h2>

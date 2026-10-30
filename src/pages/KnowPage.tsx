@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/Progress';
 import { db } from '@/lib/db/db';
 import { formatDateTime } from '@/lib/utils/format';
 import { CATEGORY_LABELS, INSTRUMENTS, getInstrument } from '@/features/assess/registry';
-import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
+import { resultHeadline } from '@/features/assess/headline';
 
 /** 知る: 診断の一覧と、これまでの結果 */
 export default function KnowPage() {
@@ -65,7 +65,7 @@ export default function KnowPage() {
             );
           })}
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            適性・興味（RIASEC）・価値観・認知のくせの診断は、順次追加します。
+            認知のくせなどの診断も、順次追加します。
           </p>
         </section>
 
@@ -77,7 +77,7 @@ export default function KnowPage() {
             <Card className="divide-y divide-slate-100 dark:divide-slate-800">
               {results.map((r) => {
                 const inst = getInstrument(r.instrumentId);
-                const type = r.instrumentId.startsWith('bigfive') ? growTypeOf(r.scores) : null;
+                const headline = resultHeadline(r);
                 return (
                   <Link
                     key={r.id}
@@ -86,7 +86,7 @@ export default function KnowPage() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium">
-                        {type ? type.name : (inst?.title ?? r.instrumentId)}
+                        {headline || (inst?.title ?? r.instrumentId)}
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
                         {formatDateTime(r.createdAt)}・{inst?.title ?? r.instrumentId}

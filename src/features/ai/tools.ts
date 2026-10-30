@@ -5,16 +5,17 @@
 import { db } from '@/lib/db/db';
 import { analysis } from '@/lib/analysis/client';
 import type { JsonValue, ToolCallInfo, ToolDeclaration } from '@/lib/llm/types';
-import { getInstrument, scaleFamily } from '@/features/assess/registry';
+import { scaleFamily } from '@/features/assess/registry';
 import { BIG_FIVE_FULL } from '@/features/assess/instruments/bigfive';
 import { DOMAIN_INSIGHTS } from '@/features/assess/instruments/bigfiveInsights';
 import { levelOf, scoreMap } from '@/features/assess/scoring';
-import { summarizeBigFive } from './appContext';
+import { summarizeResult } from './appContext';
 
 export const TOOL_DECLARATIONS: ToolDeclaration[] = [
   {
     name: 'list_assessments',
-    description: 'これまでに受けた診断の一覧（日付・診断名・Grow タイプ・5 特性の得点）を調べる',
+    description:
+      'これまでに受けた診断（性格・興味 RIASEC・価値観）の一覧と、それぞれの結果の要約を調べる',
   },
   {
     name: 'get_facet_scores',
@@ -70,11 +71,7 @@ export async function executeTool(call: ToolCallInfo): Promise<JsonValue> {
   switch (call.name) {
     case 'list_assessments': {
       const results = await db.results.orderBy('createdAt').toArray();
-      return results.map((r) =>
-        scaleFamily(r.instrumentId) === 'bigfive'
-          ? (summarizeBigFive(r) as unknown as JsonValue)
-          : { resultId: r.id, instrument: getInstrument(r.instrumentId)?.title ?? r.instrumentId },
-      );
+      return results.map((r) => summarizeResult(r) as unknown as JsonValue);
     }
     case 'get_facet_scores': {
       const domain = String(args.domain ?? '');

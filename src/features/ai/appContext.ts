@@ -8,6 +8,8 @@ import { levelOf, LEVEL_LABELS, scoreMap } from '@/features/assess/scoring';
 import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
 import { BIG_FIVE_FULL } from '@/features/assess/instruments/bigfive';
 import type { AssessmentResult } from '@/features/assess/types';
+import { rankedValues, riasecCodeOf } from '@/features/assess/headline';
+import { RIASEC_TYPES } from '@/features/assess/instruments/riasec';
 import { allTopics } from '@/features/learn/topics';
 import { getScenario } from '@/features/practice/practiceData';
 import { PRACTICE_KIND_LABELS } from '@/features/practice/types';
@@ -51,12 +53,59 @@ export function summarizeBigFive(r: AssessmentResult) {
   };
 }
 
+/** どの診断の結果も、AI 向けに要約する（性格・興味・価値観） */
+export function summarizeResult(r: AssessmentResult) {
+  if (scaleFamily(r.instrumentId) === 'bigfive')
+    return { kind: '性格（ビッグファイブ）', ...summarizeBigFive(r) };
+  const inst = getInstrument(r.instrumentId);
+  const map = scoreMap(r.scores);
+  const base = {
+    resultId: r.id,
+    date: new Date(r.createdAt).toISOString().slice(0, 10),
+    instrument: inst?.title ?? r.instrumentId,
+  };
+  if (r.instrumentId.startsWith('riasec')) {
+    return {
+      kind: '興味（RIASEC）',
+      ...base,
+      code: riasecCodeOf(r.scores),
+      scores: RIASEC_TYPES.map((t) => ({ type: t.label, score: map[t.id]?.pomp ?? null })),
+    };
+  }
+  if (r.instrumentId.startsWith('values')) {
+    return {
+      kind: '価値観',
+      ...base,
+      note: 'relative はその人の 10 の価値の平均との差（どれも高く付けがちなので、順位はこちらで見る）',
+      ranking: rankedValues(r.scores),
+      groups: (inst?.scales ?? [])
+        .filter((x) => !x.parent)
+        .map((g) => ({ name: g.label, score: map[g.id]?.pomp ?? null })),
+    };
+  }
+  return {
+    kind: inst?.title ?? r.instrumentId,
+    ...base,
+    scores: r.scores.map((x) => ({ id: x.scaleId, score: x.pomp })),
+  };
+}
+
+/** それぞれの診断の最新の結果（性格・興味・価値観） */
+export async function latestProfile() {
+  const results = await db.results.orderBy('createdAt').toArray();
+  const latest = new Map<string, AssessmentResult>();
+  for (const r of results) latest.set(scaleFamily(r.instrumentId), r);
+  return [...latest.values()].map(summarizeResult);
+}
+
 export interface AppState {
   now: string;
   page: string;
   assessments: {
     count: number;
     latestBigFive: ReturnType<typeof summarizeBigFive> | null;
+    /** 興味（RIASEC）・価値観の最新の結果（あれば） */
+    others: ReturnType<typeof summarizeResult>[];
   };
   learning: {
     /** クイズまで終えたトピックの数・全体の数 */
@@ -127,6 +176,7 @@ export async function buildAppState(page: string): Promise<AppState> {
     assessments: {
       count: results.length,
       latestBigFive: latest ? summarizeBigFive(latest) : null,
+      others: (await latestProfile()).filter((p) => p.kind !== '性格（ビッグファイブ）'),
     },
     learning: await learningSummary(now),
     practice: await practiceSnapshot(now),

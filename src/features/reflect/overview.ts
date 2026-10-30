@@ -5,7 +5,8 @@
 import { db } from '@/lib/db/db';
 import { analysis } from '@/lib/analysis/client';
 import { DAILY_VARIABLES, correlationLabel } from '@/lib/analysis/condition';
-import { summarizeBigFive } from '@/features/ai/appContext';
+import { latestProfile } from '@/features/ai/appContext';
+import { profileLinks } from '@/features/assess/profileLinks';
 import { scaleFamily } from '@/features/assess/registry';
 import { allTopics } from '@/features/learn/topics';
 import { TOPIC_CATEGORIES, type TopicCategory } from '@/features/learn/types';
@@ -49,12 +50,12 @@ export async function buildAnalysisOverview() {
   const recentDays = condition.daily.slice(-14);
   return {
     generatedAt: new Date().toISOString().slice(0, 10),
-    personality: bigFive.length
-      ? {
-          latest: summarizeBigFive(bigFive.at(-1)!),
-          assessments: bigFive.length,
-        }
-      : null,
+    profile: await latestProfile(),
+    profileLinks: profileLinks(
+      bigFive.at(-1),
+      results.filter((r) => scaleFamily(r.instrumentId) === 'riasec-48').at(-1),
+      results.filter((r) => scaleFamily(r.instrumentId) === 'values-30').at(-1),
+    ).map((l) => ({ kind: l.kind === 'match' ? '後押し' : '葛藤', title: l.title })),
     condition: checkins.length
       ? {
           days: condition.overall.days,
@@ -105,7 +106,7 @@ export type AnalysisOverview = Awaited<ReturnType<typeof buildAnalysisOverview>>
 export function overviewPrompt(o: AnalysisOverview): string {
   return [
     'あなたは、データをやさしく読み解くコーチです。以下は、自己成長アプリ「Grow」に記録された私のデータをアプリが集計したものです。',
-    '（personality の得点は 0〜100 で 50 が中間。condition の気分・エネルギーは 5 が良い、ストレスは 5 が強い。correlations は日ごとの相関係数 r）',
+    '（profile は性格・興味・価値観の最新の結果で、得点は 0〜100 で 50 が中間。condition の気分・エネルギーは 5 が良い、ストレスは 5 が強い。correlations は日ごとの相関係数 r）',
     '',
     '```json',
     JSON.stringify(o, null, 2),
@@ -114,7 +115,7 @@ export function overviewPrompt(o: AnalysisOverview): string {
     '次の順に、日本語で、具体的に分析してください。',
     '1. データから読み取れる、私の調子の傾向（3〜5 点）',
     '2. 調子が良い日・悪い日に共通していそうなこと（相関は因果ではないことに注意して）',
-    '3. 性格の傾向とあわせて考えたときの、強みの活かし方',
+    '3. 性格・興味・価値観（profile・profileLinks）とあわせて考えたときの、強みの活かし方',
     '4. 来週試せる、小さな実験を 3 つ（何を・いつ・どう測るか）',
     '',
     '注意: 決めつけず、医学的な診断はしないでください。データが少ないところは「まだ分からない」と書いてください。',

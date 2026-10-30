@@ -32,7 +32,7 @@ function readTheme(): ChartTheme {
     grid: v(dark ? '--color-slate-800' : '--color-slate-200'),
     accent: v('--color-accent-500'),
     surface: dark ? v('--color-slate-900') : '#ffffff',
-    series: [v('--viz-1'), v('--viz-2'), v('--viz-3'), v('--viz-4'), v('--viz-5')],
+    series: [v('--viz-1'), v('--viz-2'), v('--viz-3'), v('--viz-4'), v('--viz-5'), v('--viz-6')],
   };
 }
 

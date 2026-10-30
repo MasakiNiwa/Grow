@@ -8,21 +8,23 @@ import { copyText } from '@/lib/utils/download';
 import { errorMessage } from '@/lib/utils/format';
 import { aiReadyNow, useAiReady } from '@/features/cloud/aiClient';
 import { useSettings } from '@/features/settings/settingsStore';
-import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
+import { resultShortName } from '@/features/assess/headline';
+import { getInstrument } from '@/features/assess/registry';
 import type { AssessmentResult } from '@/features/assess/types';
 import Markdown from '@/features/chat/markdown/Markdown';
 import { cancelAi, runOneshot } from './oneshot';
 import { fillLine, pick } from './personas';
 import { useMainPersona } from './usePersona';
-import { summarizeBigFive } from './appContext';
-import { bigFiveDeepDivePrompt } from './externalPrompt';
+import { summarizeResult } from './appContext';
+import { resultDeepDivePrompt } from './externalPrompt';
 
 /** 結果の画面の AI: キャラクターのひとこと・解説・チャットで掘り下げる・外部 AI 用のプロンプト */
 export function ResultAiPanel({ result }: { result: AssessmentResult }) {
   const s = useSettings();
   const persona = useMainPersona();
   const ready = useAiReady();
-  const type = growTypeOf(result.scores);
+  const type = { name: resultShortName(result) };
+  const title = getInstrument(result.instrumentId)?.title ?? '診断';
   const [reaction, setReaction] = useState(() =>
     fillLine(pick(persona.lines.result), { type: type.name }),
   );
@@ -37,7 +39,7 @@ export function ResultAiPanel({ result }: { result: AssessmentResult }) {
     let alive = true;
     void runOneshot({
       task: 'reaction',
-      prompt: `<app_state>${JSON.stringify(summarizeBigFive(result))}</app_state>\nユーザーが性格診断を終えました。結果を見た最初のリアクションを、あなたのキャラクターらしく 1〜2 文で。解説はまだしないでください。`,
+      prompt: `<app_state>${JSON.stringify(summarizeResult(result))}</app_state>\nユーザーが「${title}」を終えました。結果を見た最初のリアクションを、あなたのキャラクターらしく 1〜2 文で。解説はまだしないでください。`,
       maxOutputTokens: 120,
     })
       .then((r) => {
@@ -49,7 +51,7 @@ export function ResultAiPanel({ result }: { result: AssessmentResult }) {
     return () => {
       alive = false;
     };
-  }, [result, s.reaction]);
+  }, [result, s.reaction, title]);
 
   const askExplain = async () => {
     setBusy(true);
@@ -57,7 +59,7 @@ export function ResultAiPanel({ result }: { result: AssessmentResult }) {
     try {
       const r = await runOneshot({
         task: 'assist',
-        prompt: `<app_state>${JSON.stringify(summarizeBigFive(result))}</app_state>\nこの性格診断の結果を、ユーザーにわかりやすく解説してください。①全体の傾向 ②強みが活きる場面 ③気をつけたい場面と小さな対策、の順に、具体的な場面の例を入れて 8 文程度で。数字は JSON のものだけを使ってください。`,
+        prompt: `<app_state>${JSON.stringify(summarizeResult(result))}</app_state>\nこの「${title}」の結果を、ユーザーにわかりやすく解説してください。①全体の傾向 ②それが活きる場面 ③気をつけたい場面と小さな対策、の順に、具体的な場面の例を入れて 8 文程度で。数字は JSON のものだけを使ってください。`,
         maxOutputTokens: 900,
         onText: setExplain,
       });
@@ -109,7 +111,7 @@ export function ResultAiPanel({ result }: { result: AssessmentResult }) {
           size="sm"
           variant="ghost"
           onClick={() =>
-            void copyText(bigFiveDeepDivePrompt(result)).then((ok) =>
+            void copyText(resultDeepDivePrompt(result)).then((ok) =>
               ok
                 ? toast.success('プロンプトをコピーしました', {
                     description: 'ChatGPT・Claude・Gemini などに貼り付けて使えます',
