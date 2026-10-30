@@ -1,8 +1,9 @@
 import { useShallow } from 'zustand/react/shallow';
-import { useSettings } from '@/features/settings/settingsStore';
-import { getPersona, type Persona } from './personas';
+import { useSettings, type Settings } from '@/features/settings/settingsStore';
+import { getPersona, type CustomPersonaFields, type Persona } from './personas';
 
-const customFields = (s: ReturnType<typeof useSettings.getState>) => ({
+/** カスタムのキャラクターの設定（中身が変わったときだけ描き直すよう、平らなオブジェクトで選ぶ） */
+const customFields = (s: Settings): CustomPersonaFields => ({
   customPersona: s.customPersona,
   customName: s.customName,
   customEmoji: s.customEmoji,
@@ -13,7 +14,8 @@ const customFields = (s: ReturnType<typeof useSettings.getState>) => ({
 
 /** 相棒（メインのキャラクター） */
 export function useMainPersona(): Persona {
-  const [id, c] = useSettings(useShallow((s) => [s.persona, customFields(s)] as const));
+  const id = useSettings((s) => s.persona);
+  const c = useSettings(useShallow(customFields));
   return getPersona(id, c);
 }
 
@@ -21,9 +23,4 @@ export function useMainPersona(): Persona {
 export function usePersonaById(id: string | undefined): Persona {
   const c = useSettings(useShallow(customFields));
   return getPersona(id ?? 'partner', c);
-}
-
-/** 画面の外（ストアなど）で使う */
-export function personaFromSettings(id: string): Persona {
-  return getPersona(id, useSettings.getState());
 }
