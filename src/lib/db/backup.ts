@@ -83,6 +83,18 @@ const log = z.object({
   data: z.record(z.string(), z.unknown()),
 });
 
+const checkin = z.object({
+  id: z.string(),
+  date: z.string(),
+  createdAt: z.number(),
+  mood: z.number(),
+  energy: z.number(),
+  stress: z.number(),
+  sleep: z.number().optional(),
+  tags: z.array(z.string()),
+  note: z.string().optional(),
+});
+
 const customTopic = topicSchema.and(z.object({ importedAt: z.number() }));
 
 export const backupSchema = z.object({
@@ -97,20 +109,24 @@ export const backupSchema = z.object({
     topics: z.array(customTopic).default([]),
     progress: z.array(progress).default([]),
     logs: z.array(log).default([]),
+    checkins: z.array(checkin).default([]),
   }),
 });
 
 export type Backup = z.infer<typeof backupSchema>;
 
 export async function exportBackup(settings: Record<string, unknown>): Promise<Backup> {
-  const [results, drafts, chatRecords, topics, progressRecords, logs] = await Promise.all([
-    db.results.toArray(),
-    db.drafts.toArray(),
-    db.chat.toArray(),
-    db.topics.toArray(),
-    db.progress.toArray(),
-    db.logs.toArray(),
-  ]);
+  const [results, drafts, chatRecords, topics, progressRecords, logs, checkins] = await Promise.all(
+    [
+      db.results.toArray(),
+      db.drafts.toArray(),
+      db.chat.toArray(),
+      db.topics.toArray(),
+      db.progress.toArray(),
+      db.logs.toArray(),
+      db.checkins.toArray(),
+    ],
+  );
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -123,6 +139,7 @@ export async function exportBackup(settings: Record<string, unknown>): Promise<B
       topics,
       progress: progressRecords,
       logs: logs as unknown as Backup['data']['logs'],
+      checkins,
     },
   };
 }
@@ -140,7 +157,7 @@ export function parseBackup(text: string): Backup {
   return parsed.data;
 }
 
-const TABLES = () => [db.results, db.drafts, db.chat, db.topics, db.progress, db.logs];
+const TABLES = () => [db.results, db.drafts, db.chat, db.topics, db.progress, db.logs, db.checkins];
 
 /** バックアップで今のデータを置き換える（1 つのトランザクション） */
 export async function restoreBackup(backup: Backup): Promise<void> {
@@ -152,6 +169,7 @@ export async function restoreBackup(backup: Backup): Promise<void> {
     await db.topics.bulkAdd(backup.data.topics);
     await db.progress.bulkAdd(backup.data.progress);
     await db.logs.bulkAdd(backup.data.logs as unknown as PracticeLog[]);
+    await db.checkins.bulkAdd(backup.data.checkins);
   });
 }
 

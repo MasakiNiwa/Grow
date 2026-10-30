@@ -67,6 +67,8 @@ export interface AppState {
     /** 最近学んだトピック */
     recent: string[];
   };
+  /** 直近のチェックイン（気分・エネルギーは 5 が良い、ストレスは 5 が強い） */
+  condition: { date: string; mood: number; energy: number; stress: number; tags: string[] }[];
   practice: {
     total: number;
     /** 直近 7 日の練習の回数 */
@@ -128,6 +130,13 @@ export async function buildAppState(page: string): Promise<AppState> {
     },
     learning: await learningSummary(now),
     practice: await practiceSnapshot(now),
+    condition: (await db.checkins.orderBy('createdAt').reverse().limit(3).toArray()).map((c) => ({
+      date: c.date,
+      mood: c.mood,
+      energy: c.energy,
+      stress: c.stress,
+      tags: c.tags,
+    })),
   };
 }
 

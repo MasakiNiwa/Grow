@@ -13,6 +13,8 @@ import {
   Cpu,
   GraduationCap,
   Dumbbell,
+  HeartPulse,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 import { PageBody, PageHeader } from '@/app/PageHeader';
 import { PILLAR_ITEMS } from '@/app/navItems';
@@ -178,6 +180,45 @@ export default function HelpPage() {
           </Body>
         </Section>
 
+        <Section collapsible title="チェックイン" icon={<HeartPulse />}>
+          <Body>
+            <p>
+              ホームの顔のボタン（または「ふりかえる →
+              チェックイン」）から、今日の気分・エネルギー・ストレス・睡眠時間・できごと（タグ）・ひとことメモを
+              1 分で記録します。タグは自分で増やせます。1
+              日に何度記録しても、分析では日ごとの平均にします。
+            </p>
+          </Body>
+        </Section>
+
+        <Section collapsible title="ふりかえる（分析）" icon={<ChartNoAxesCombined />}>
+          <Body>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <strong>自分の傾向</strong>：性格の推移、2 回を比べる、特性 → 側面 →
+                設問のドリルダウン
+              </li>
+              <li>
+                <strong>コンディション</strong>
+                ：気分・エネルギー・ストレス・睡眠の推移（点を押すとその日の記録）、曜日ごとの平均、できごとと気分（棒を押すとそのできごとがあった日の記録）
+              </li>
+              <li>
+                <strong>関係を探る</strong>
+                ：気分・エネルギー・ストレス・睡眠・練習・クイズの、日ごとの相関（マスを押すと散布図）。相関は「一緒に動いている」ことで、原因までは分かりません
+              </li>
+              <li>
+                <strong>学びの記録・練習の記録</strong>
+                ：分野ごとの正答率（棒を押すとカードごと）、練習の回数・得点・気持ちの変化
+              </li>
+            </ul>
+            <p>
+              下の「まとめて分析」では、アプリが集計したまとめをもとにキャラクターがコメントします。外部の
+              AI 用のプロンプトのコピーや、CSV・JSON での書き出しもできます。集計は Web Worker
+              で行います。
+            </p>
+          </Body>
+        </Section>
+
         <Section collapsible title="Grow タイプ（16 タイプ）" icon={<Shapes />}>
           <Body>
             <p>
@@ -277,7 +318,6 @@ export default function HelpPage() {
         <Section collapsible title="これからの予定" icon={<Sparkles />}>
           <Body>
             <ul className="list-disc space-y-1 pl-5">
-              <li>日々のチェックイン（気分・エネルギー）と、その分析</li>
               <li>適性・興味（RIASEC）・価値観・認知のくせの診断</li>
             </ul>
           </Body>

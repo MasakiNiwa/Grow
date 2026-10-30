@@ -30,6 +30,7 @@ src/
     ai/           キャラクター・プロンプト・アプリの状態（JSON）・ツール・単発の生成
     learn/        学ぶ: 考え方カード（content/）・形式（zod）・復習（FSRS）・おすすめ・取り込み
     practice/     練習: 場面（content/scenarios.ts）・AI ロールプレイ・ワークシート・記録
+    checkin/      日々のチェックイン（気分・エネルギー・ストレス・睡眠・タグ）
     chat/         AI と話す（相棒＋2 人目のキャラクター）
     cloud/        クラウド AI（接続先の切り替え・キーの保存・場面ごとの AI）
     engine/       端末内の AI（LiteRT-LM）の読み込み

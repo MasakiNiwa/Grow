@@ -1,5 +1,14 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { Dumbbell, GitCompareArrows, LineChart, ListTree, type LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  Dumbbell,
+  GitCompareArrows,
+  HeartPulse,
+  LineChart,
+  ListTree,
+  Network,
+  type LucideIcon,
+} from 'lucide-react';
 
 /**
  * 分析ツールの登録先（ふりかえるページ）。
@@ -8,6 +17,8 @@ import { Dumbbell, GitCompareArrows, LineChart, ListTree, type LucideIcon } from
  */
 export interface AnalysisTool {
   id: string;
+  /** まとまり（ふりかえるページで、まとまりごとに並べる） */
+  group: 'self' | 'daily' | 'growth';
   title: string;
   description: string;
   icon: LucideIcon;
@@ -17,6 +28,7 @@ export interface AnalysisTool {
 export const ANALYSIS_TOOLS: AnalysisTool[] = [
   {
     id: 'trend',
+    group: 'self',
     title: '推移',
     description: '性格の特性が、時間とともにどう変わったか',
     icon: LineChart,
@@ -24,6 +36,7 @@ export const ANALYSIS_TOOLS: AnalysisTool[] = [
   },
   {
     id: 'compare',
+    group: 'self',
     title: '2 回を比べる',
     description: '2 つの結果を選んで、変わったところを大きい順に',
     icon: GitCompareArrows,
@@ -31,16 +44,48 @@ export const ANALYSIS_TOOLS: AnalysisTool[] = [
   },
   {
     id: 'drill',
+    group: 'self',
     title: 'ドリルダウン',
     description: '結果を、特性 → 側面 → 設問ごとの回答まで掘り下げる',
     icon: ListTree,
     component: lazy(() => import('./DrillTool')),
   },
   {
+    id: 'condition',
+    group: 'daily',
+    title: 'コンディション',
+    description: '気分・エネルギー・ストレス・睡眠の推移、曜日、できごとと気分',
+    icon: HeartPulse,
+    component: lazy(() => import('./ConditionTool')),
+  },
+  {
+    id: 'correlation',
+    group: 'daily',
+    title: '関係を探る',
+    description: '睡眠と気分、練習とストレスなど、何と何が一緒に動いているか',
+    icon: Network,
+    component: lazy(() => import('./CorrelationTool')),
+  },
+  {
+    id: 'learning',
+    group: 'growth',
+    title: '学びの記録',
+    description: '分野ごとの正答率と進み具合',
+    icon: BookOpen,
+    component: lazy(() => import('./LearningTool')),
+  },
+  {
     id: 'practice',
+    group: 'growth',
     title: '練習の記録',
     description: '練習の回数・ロールプレイの得点・考え方の整理の効果',
     icon: Dumbbell,
     component: lazy(() => import('./PracticeTool')),
   },
 ];
+
+export const TOOL_GROUPS: Record<AnalysisTool['group'], string> = {
+  self: '自分の傾向',
+  daily: '毎日の記録',
+  growth: '学びと練習',
+};

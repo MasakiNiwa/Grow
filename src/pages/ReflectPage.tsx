@@ -1,58 +1,72 @@
 import { Suspense } from 'react';
-import { useLocation, useParams } from 'wouter';
+import { HeartPulse } from 'lucide-react';
+import { Link, useLocation, useParams } from 'wouter';
 import { PageBody, PageHeader } from '@/app/PageHeader';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils/cn';
-import { ANALYSIS_TOOLS } from '@/features/reflect/tools';
+import { AiAnalysisPanel } from '@/features/reflect/AiAnalysisPanel';
+import { ANALYSIS_TOOLS, TOOL_GROUPS } from '@/features/reflect/tools';
 
-/** ふりかえる: 分析ツールを選んで、記録を分析する */
+/** ふりかえる: 分析ツールを選んで、記録を分析する（ツールはまとまりごとに並べる） */
 export default function ReflectPage() {
   const { tool } = useParams<{ tool?: string }>();
   const [, navigate] = useLocation();
   const current = ANALYSIS_TOOLS.find((t) => t.id === tool) ?? ANALYSIS_TOOLS[0];
   const Tool = current.component;
+  const groups = Object.keys(TOOL_GROUPS) as (keyof typeof TOOL_GROUPS)[];
   return (
     <>
-      <PageHeader title="ふりかえる" />
+      <PageHeader
+        title="ふりかえる"
+        actions={
+          <Link href="/checkin" className="max-sm:hidden">
+            <Button size="sm">
+              <HeartPulse />
+              チェックイン
+            </Button>
+          </Link>
+        }
+      />
       <PageBody wide>
-        <div
-          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
-          role="tablist"
-          aria-label="分析ツール"
-        >
-          {ANALYSIS_TOOLS.map((t) => {
-            const active = t.id === current.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => navigate(`/reflect/${t.id}`, { replace: true })}
-                className={cn(
-                  'flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-colors',
-                  active
-                    ? 'border-accent-400 bg-accent-50 dark:border-accent-700 dark:bg-accent-900/30'
-                    : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900',
-                )}
-              >
-                <t.icon className="size-5 text-accent-600 dark:text-accent-400" />
-                <span className="text-sm font-semibold">{t.title}</span>
-                <span className="text-xs text-slate-500 max-sm:hidden dark:text-slate-400">
-                  {t.description}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <Card className="p-4">
+        <nav aria-label="分析ツール" className="space-y-2">
+          {groups.map((g) => (
+            <div key={g} className="flex items-center gap-2">
+              <span className="w-16 shrink-0 text-[0.7rem] font-semibold text-slate-500 sm:w-20 sm:text-xs">
+                {TOOL_GROUPS[g]}
+              </span>
+              <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5">
+                {ANALYSIS_TOOLS.filter((t) => t.group === g).map((t) => {
+                  const active = t.id === current.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      aria-current={active ? 'page' : undefined}
+                      onClick={() => navigate(`/reflect/${t.id}`, { replace: true })}
+                      className={cn(
+                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors',
+                        active
+                          ? 'border-accent-400 bg-accent-50 font-medium text-accent-800 dark:border-accent-700 dark:bg-accent-900/30 dark:text-accent-200'
+                          : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900',
+                      )}
+                    >
+                      <t.icon className="size-4" />
+                      {t.title}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+        <Card className="space-y-3 p-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">{current.description}</p>
           <Suspense fallback={<div className="h-64" />}>
             <Tool />
           </Suspense>
         </Card>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          分析ツールは順次追加します（トレーニングの記録・日々のコンディションなど）。
-        </p>
+        <AiAnalysisPanel />
       </PageBody>
     </>
   );

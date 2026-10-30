@@ -39,6 +39,11 @@ export const TOOL_DECLARATIONS: ToolDeclaration[] = [
       '練習（ロールプレイ・考え方の整理・3 つのよいこと・習慣プラン）の記録を集計する。週ごとの回数、ロールプレイの得点、考え方の整理で気持ちがどれだけ軽くなったか、よく出る考え方のくせ',
   },
   {
+    name: 'get_analysis_overview',
+    description:
+      '記録全体の分析のまとめ（最近のコンディション・曜日ごとの平均・できごとと気分・日ごとの相関・学びと練習）を調べる。調子の波や、何が調子に影響していそうかを話すときに使う',
+  },
+  {
     name: 'compare_assessments',
     description: '最新と 1 つ前の性格診断を比べ、変化の大きい側面を返す',
   },
@@ -49,6 +54,7 @@ export const TOOL_LABELS: Record<string, string> = {
   get_facet_scores: '側面の得点を確認中…',
   compare_assessments: '前回との違いを計算中…',
   get_practice_summary: '練習の記録を集計中…',
+  get_analysis_overview: '記録を分析中…',
 };
 
 const scaleById = new Map(BIG_FIVE_FULL.scales.map((s) => [s.id, s]));
@@ -108,6 +114,10 @@ export async function executeTool(call: ToolCallInfo): Promise<JsonValue> {
         })),
         note: '10 以内の変化は、その日の気分などによる揺れの範囲かもしれない',
       };
+    }
+    case 'get_analysis_overview': {
+      const { buildAnalysisOverview } = await import('@/features/reflect/overview');
+      return (await buildAnalysisOverview()) as unknown as JsonValue;
     }
     case 'get_practice_summary': {
       const summary = await analysis().practiceSummary(await db.logs.toArray());

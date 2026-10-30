@@ -10,6 +10,7 @@ import { APP_TITLE } from '@/lib/constants';
 import { formatDateTime } from '@/lib/utils/format';
 import { scaleFamily } from '@/features/assess/registry';
 import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
+import { CheckinCard } from '@/features/checkin/CheckinCard';
 
 /** ホーム: 4 つの柱の入口と、今の自分のまとめ */
 export default function HomePage() {
@@ -31,6 +32,8 @@ export default function HomePage() {
             Grow は、自分の傾向を知って、少しずつ人として成長していくためのアプリです。
           </p>
         </section>
+
+        <CheckinCard />
 
         {latest === null && (
           <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
