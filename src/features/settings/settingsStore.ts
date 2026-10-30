@@ -86,6 +86,11 @@ export interface Settings extends Omit<ConversationSettings, 'systemPrompt'> {
   // ---- 表示 ----
   enterToSend: boolean;
   showStats: boolean;
+  // ---- チェックイン ----
+  /** 自分で足したできごとのタグ */
+  checkinTags: string[];
+  /** 睡眠時間も記録する */
+  checkinSleep: boolean;
   // ---- バックアップ ----
   /** 最後にデータを書き出した日時 */
   lastBackupAt: number | null;
@@ -138,6 +143,9 @@ export const DEFAULT_SETTINGS: Settings = {
 
   enterToSend: true,
   showStats: false,
+
+  checkinTags: [],
+  checkinSleep: true,
 
   lastBackupAt: null,
 };
