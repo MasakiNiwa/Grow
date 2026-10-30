@@ -69,7 +69,7 @@ function BottomNav() {
       aria-label="メイン"
       className="pb-safe shrink-0 border-t border-slate-200 bg-white/90 backdrop-blur-md md:hidden dark:border-slate-800 dark:bg-slate-900/90"
     >
-      <div className="grid grid-cols-6">
+      <div className="grid grid-cols-7">
         {BOTTOM_ITEMS.map(({ to, label, icon: Icon }) => {
           const active = isActivePath(location, to);
           return (
@@ -78,7 +78,7 @@ function BottomNav() {
               href={to}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'flex min-w-0 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[0.65rem] font-medium whitespace-nowrap transition-colors',
+                'flex min-w-0 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[0.6rem] font-medium tracking-tighter whitespace-nowrap transition-colors min-[400px]:text-[0.65rem] min-[400px]:tracking-normal',
                 active
                   ? 'text-accent-700 dark:text-accent-300'
                   : 'text-slate-500 active:text-slate-800 dark:text-slate-400',
@@ -86,7 +86,7 @@ function BottomNav() {
             >
               <span
                 className={cn(
-                  'flex h-7 w-12 items-center justify-center rounded-full transition-colors [&_svg]:size-5',
+                  'flex h-7 w-11 items-center justify-center rounded-full transition-colors [&_svg]:size-5',
                   active && 'bg-accent-100 dark:bg-accent-900/40',
                 )}
               >

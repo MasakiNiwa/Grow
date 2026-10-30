@@ -48,6 +48,8 @@ export interface Settings extends Omit<ConversationSettings, 'systemPrompt'> {
   persona: string;
   /** 2 人目のキャラクター（空ならいない）。チャットで別の視点から一言添える */
   secondPersona: string;
+  /** 相棒の答えのあとの掛け合いの回数（1: 2 人目の一言だけ、3: 一言→相棒→2 人目、など） */
+  banterTurns: number;
   /** カスタムの相棒（persona = 'custom'）の性格・名前・絵文字 */
   customPersona: string;
   customName: string;
@@ -106,6 +108,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
   persona: 'partner',
   secondPersona: '',
+  banterTurns: 1,
   customPersona: '',
   customName: '',
   customEmoji: '',

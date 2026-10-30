@@ -51,16 +51,20 @@ export const PILLAR_ITEMS: NavItem[] = [
   },
 ];
 
-export const CHAT_ITEM: NavItem = { to: '/chat', label: 'AI と話す', icon: MessageCircleHeart };
+export const CHAT_ITEM: NavItem = { to: '/chat', label: 'AI', icon: MessageCircleHeart };
 export const AI_ITEM: NavItem = { to: '/ai', label: 'AI の設定', icon: Sparkles };
 export const HOME_ITEM: NavItem = { to: '/', label: 'ホーム', icon: House };
 export const SETTINGS_ITEM: NavItem = { to: '/settings', label: '設定', icon: Settings };
 export const HELP_ITEM: NavItem = { to: '/help', label: 'ヘルプ', icon: CircleHelp };
 
-/** スマホの下部ナビ（ヘルプはヘッダーにあるので入れない） */
-export const BOTTOM_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS, SETTINGS_ITEM];
+/** スマホの下部ナビ（ヘルプはヘッダーにあるので入れない）。AI と話す入口もここ（見つけやすさ優先） */
+export const BOTTOM_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS, CHAT_ITEM, SETTINGS_ITEM];
 /** PC のサイドバー */
-export const SIDE_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS, CHAT_ITEM];
+export const SIDE_ITEMS: NavItem[] = [
+  HOME_ITEM,
+  { ...CHAT_ITEM, label: 'AI と話す' },
+  ...PILLAR_ITEMS,
+];
 export const SIDE_SUB_ITEMS: NavItem[] = [AI_ITEM, SETTINGS_ITEM, HELP_ITEM];
 
 export function isActivePath(location: string, to: string): boolean {

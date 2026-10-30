@@ -97,6 +97,24 @@ export function CharacterSettings() {
         )}
         {s.secondPersona && (
           <>
+            <label className="flex items-center justify-between gap-3 text-sm">
+              <span>
+                掛け合いの長さ
+                <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  相棒の答えのあと、2 人が交互に話す回数
+                </span>
+              </span>
+              <select
+                value={s.banterTurns}
+                onChange={(e) => s.update({ banterTurns: Number(e.target.value) })}
+                className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+              >
+                <option value={1}>一言だけ</option>
+                <option value={2}>一言＋相棒が返す</option>
+                <option value={3}>2 往復</option>
+                <option value={5}>3 往復</option>
+              </select>
+            </label>
             <ul>
               <TaskRow
                 task="aside"

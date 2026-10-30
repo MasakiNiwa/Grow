@@ -108,6 +108,9 @@ export default function HelpPage() {
 
         <Section collapsible title="使い方" icon={<BookOpen />}>
           <Body>
+            <p>
+              下のナビ（PC は左）の <strong>AI</strong> から、キャラクターと話せます。
+            </p>
             <ol className="list-decimal space-y-1.5 pl-5">
               {PILLAR_ITEMS.map((p) => (
                 <li key={p.to}>
@@ -244,7 +247,15 @@ export default function HelpPage() {
           <Body>
             <p>
               「設定 → AI のキャラクター」で、相棒（メインのキャラクター）と、別の視点から一言添える
-              2 人目を選べます。性格を自分で書く「カスタム」もあります。
+              2 人目を選べます。どちらも名前・絵文字・性格を自分で決める「カスタム」にできます。
+            </p>
+            <p>
+              相棒と 2 人目は、<strong>使う AI（モデル）を別々に</strong>選べます（例: 相棒は
+              Gemini、2 人目は OpenAI）。チャットの吹き出しの下に、答えた AI の名前が出ます。
+            </p>
+            <p>
+              「掛け合いの長さ」を伸ばすと、相棒の答えのあとに 2 人が交互に話します。会話のあとの「2
+              人でもう少し話してもらう」で、続きを話してもらうこともできます。
             </p>
             <ul className="space-y-1">
               {PERSONAS.map((p) => (
