@@ -84,6 +84,8 @@ export function ChatView() {
   const toolActivity = useChat((s) => s.toolActivity);
   const send = useChat((s) => s.send);
   const stop = useChat((s) => s.stop);
+  const continueBanter = useChat((s) => s.continueBanter);
+  const hasSecond = useSettings((s) => !!s.secondPersona && s.secondPersona !== s.persona);
   const enterToSend = useSettings((s) => s.enterToSend);
   const [text, setText] = useState('');
   const bottom = useRef<HTMLDivElement>(null);
@@ -128,6 +130,17 @@ export function ChatView() {
             <Message key={m.id} m={m} />
           ))}
           {toolActivity && <p className="text-xs text-slate-500">{toolActivity}</p>}
+          {hasSecond && !isGenerating && messages.at(-1)?.role === 'assistant' && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={continueBanter}
+                className="rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              >
+                💬 2 人でもう少し話してもらう
+              </button>
+            </div>
+          )}
           <div ref={bottom} />
         </div>
       </div>

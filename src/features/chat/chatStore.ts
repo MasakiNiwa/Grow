@@ -16,7 +16,7 @@ import { errorMessage } from '@/lib/utils/format';
 import { createId } from '@/lib/utils/id';
 import { useAiBusy } from '@/features/ai/aiBusy';
 import { isAiBusyExceptReaction, preemptReaction } from '@/features/ai/oneshot';
-import { buildSecondVoicePrompt, getConversationSettings } from '@/features/ai/prompt';
+import { buildBanterPrompt, getConversationSettings } from '@/features/ai/prompt';
 import { getPersona } from '@/features/ai/personas';
 import { buildAppState, formatAppState } from '@/features/ai/appContext';
 import { executeTool, TOOL_DECLARATIONS, TOOL_LABELS } from '@/features/ai/tools';
@@ -40,6 +40,8 @@ interface ChatState {
   /** 送信する。受け付けたら true（入力欄を空にしてよい） */
   send: (text: string) => boolean;
   stop: () => void;
+  /** 最後のやりとりの掛け合いを、もう少し続けてもらう */
+  continueBanter: () => void;
   clear: () => Promise<void>;
   /** DB の内容で表示を作り直す（バックアップの復元のあとなど） */
   reload: () => Promise<void>;
@@ -119,67 +121,100 @@ export const useChat = create<ChatState>()((set, get) => {
     };
   };
 
-  /** 2 人目のキャラクターの一言 */
-  const secondVoice = async (user: ChatMessage, reply: ChatMessage) => {
+  /** 掛け合いを止めるか（停止ボタン） */
+  let stopBanter = false;
+
+  /**
+   * 掛け合い: 相棒の答えのあと、2 人目と相棒が交互に短く話す（turns 回）。
+   * 2 人目は「2 人目のキャラクター」の AI、相棒は「チャット」の AI で話す（別のモデルにできる）。
+   * 掛け合いの発言はメインの会話の履歴には入れない（aside）
+   */
+  const banter = async (user: ChatMessage, thread: ChatMessage[], turns: number) => {
     const settings = useSettings.getState();
     if (!settings.secondPersona || settings.secondPersona === settings.persona) return;
-    if (!aiReadyNow('aside')) return;
     const main = getPersona(settings.persona, settings);
     const second = getPersona(settings.secondPersona, settings);
-    const id = createId();
-    const aside: ChatMessage = {
-      id,
-      role: 'assistant',
-      text: '',
-      speaker: second.id,
-      aside: true,
-      model: modelLabel('aside'),
-      createdAt: Date.now(),
-      status: 'streaming',
-    };
-    set((st) => ({ messages: [...st.messages, aside] }));
-    const stream = streamer(id);
-    try {
-      const result = await ai.generate(
-        {
-          mode: 'oneshot',
-          settings: {
-            systemPrompt: buildSecondVoicePrompt(settings, second, main),
-            temperature: settings.temperature,
-            topK: settings.topK,
-            topP: settings.topP,
-            maxOutputTokens: 200,
-            enableThinking: false,
+    const lines = thread.map((m) => ({
+      name: m.speaker === second.id ? second.name : main.name,
+      text: m.text,
+    }));
+    // 直前に話したのが 2 人目なら、次は相棒から
+    let secondsTurn = thread.at(-1)?.speaker !== second.id;
+    stopBanter = false;
+    for (let i = 0; i < turns && !stopBanter; i++, secondsTurn = !secondsTurn) {
+      const speaker = secondsTurn ? second : main;
+      const other = secondsTurn ? main : second;
+      const task = secondsTurn ? 'aside' : 'chat';
+      if (!aiReadyNow(task)) return;
+      const first = secondsTurn && lines.length === 1;
+      const id = createId();
+      set((st) => ({
+        messages: [
+          ...st.messages,
+          {
+            id,
+            role: 'assistant',
+            text: '',
+            speaker: speaker.id,
+            aside: true,
+            model: modelLabel(task),
+            createdAt: Date.now(),
+            status: 'streaming',
           },
-          history: [],
-          message: {
-            id: createId(),
-            role: 'user',
-            text: `ユーザー: ${user.text}\n${main.name}: ${reply.text}\n\nこの会話に、あなたの視点から一言添えてください。`,
+        ],
+      }));
+      const stream = streamer(id);
+      try {
+        const result = await ai.generate(
+          {
+            mode: 'oneshot',
+            settings: {
+              systemPrompt: buildBanterPrompt(settings, speaker, other, first),
+              temperature: settings.temperature,
+              topK: settings.topK,
+              topP: settings.topP,
+              maxOutputTokens: 200,
+              enableThinking: false,
+            },
+            history: [],
+            message: {
+              id: createId(),
+              role: 'user',
+              text: [
+                `ユーザー: ${user.text}`,
+                ...lines.slice(-6).map((l) => `${l.name}: ${l.text}`),
+                '',
+                first
+                  ? 'この会話に、あなたの視点から一言添えてください。'
+                  : `${other.name}の発言を受けて、あなたの番です。`,
+              ].join('\n'),
+            },
+            assistantId: id,
+            keepChat: settings.keepChatContext,
           },
-          assistantId: id,
-          keepChat: settings.keepChatContext,
-        },
-        (ev) => {
-          if (ev.type === 'delta' && !ev.channel) stream.push(ev.text);
-        },
-        undefined,
-        'aside',
-      );
-      const view = stream.end();
-      if (!view.text.trim()) {
+          (ev) => {
+            if (ev.type === 'delta' && !ev.channel) stream.push(ev.text);
+          },
+          undefined,
+          task,
+        );
+        const view = stream.end();
+        if (!view.text.trim()) {
+          set((st) => ({ messages: st.messages.filter((m) => m.id !== id) }));
+          return;
+        }
+        patch(id, { text: view.text.trim(), status: result.status });
+        lines.push({ name: speaker.name, text: view.text.trim() });
+        const saved = get().messages.find((m) => m.id === id);
+        if (saved) persistMessage(saved);
+        if (result.status !== 'done') return;
+      } catch (e) {
+        // 掛け合いは添え物なので、失敗しても目立たせずに消す
+        console.warn('掛け合いの発言を作れませんでした', e);
         set((st) => ({ messages: st.messages.filter((m) => m.id !== id) }));
         return;
       }
-      patch(id, { text: view.text.trim(), status: result.status });
-    } catch (e) {
-      // 一言は添え物なので、失敗しても目立たせずに消す
-      console.warn('2 人目のキャラクターの一言を作れませんでした', e);
-      set((st) => ({ messages: st.messages.filter((m) => m.id !== id) }));
-      return;
     }
-    const saved = get().messages.find((m) => m.id === id);
-    if (saved) persistMessage(saved);
   };
 
   const generate = async (history: ChatMessage[], user: ChatMessage): Promise<void> => {
@@ -259,7 +294,7 @@ export const useChat = create<ChatState>()((set, get) => {
     }
     try {
       const reply = get().messages.find((m) => m.id === assistantId);
-      if (done && reply?.text) await secondVoice(user, reply);
+      if (done && reply?.text) await banter(user, [reply], useSettings.getState().banterTurns);
     } finally {
       useAiBusy.setState({ task: null });
       set({ isGenerating: false, toolActivity: null });
@@ -317,7 +352,28 @@ export const useChat = create<ChatState>()((set, get) => {
     },
 
     stop() {
+      stopBanter = true;
       if (get().isGenerating) ai.cancel();
+    },
+
+    continueBanter() {
+      const { messages, isGenerating } = get();
+      if (isGenerating || !canGenerate()) return;
+      let i = messages.length - 1;
+      while (i >= 0 && messages[i].role !== 'user') i--;
+      if (i < 0) return;
+      const thread = messages.slice(i + 1).filter((m) => m.role === 'assistant' && m.text);
+      if (thread.length === 0) return;
+      void (async () => {
+        set({ isGenerating: true });
+        useAiBusy.setState({ task: 'chat' });
+        try {
+          await banter(messages[i], thread, 2);
+        } finally {
+          useAiBusy.setState({ task: null });
+          set({ isGenerating: false });
+        }
+      })();
     },
 
     async reload() {

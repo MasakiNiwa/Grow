@@ -53,6 +53,23 @@ export function buildSecondVoicePrompt(s: Settings, second: Persona, main: Perso
   ].join('\n');
 }
 
+/**
+ * 掛け合いで話すときのシステムプロンプト（相棒と 2 人目が交互に 1〜2 文ずつ）。
+ * 最初の一言（2 人目が相棒の答えに添える）は buildSecondVoicePrompt と同じ役目
+ */
+export function buildBanterPrompt(
+  s: Settings,
+  speaker: Persona,
+  other: Persona,
+  first: boolean,
+): string {
+  if (first) return buildSecondVoicePrompt(s, speaker, other);
+  return [
+    buildSystemPrompt(s, { tools: false, persona: speaker }),
+    `【この場面での役目】あなた（${speaker.name}）は「${other.name}」と一緒に、ユーザーとの会話に参加しています。直前の${other.name}の発言を受けて、あなたらしい「${speaker.viewpoint}」から 1〜2 文で返してください。相手に軽く反応したり、ユーザーに問いかけたりしてかまいません。同じことの繰り返しや、否定だけの返事はしません。名前の見出しは付けず、発言だけを書きます。`,
+  ].join('\n');
+}
+
 /** ユーザーの性別・年齢層（設定したものだけ。何も設定していなければ空） */
 export function userProfileText(s: Pick<Settings, 'userGender' | 'userAge'>): string {
   return [
