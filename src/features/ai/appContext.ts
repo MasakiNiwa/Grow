@@ -9,6 +9,8 @@ import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
 import { BIG_FIVE_FULL } from '@/features/assess/instruments/bigfive';
 import type { AssessmentResult } from '@/features/assess/types';
 import { allTopics } from '@/features/learn/topics';
+import { getScenario } from '@/features/practice/practiceData';
+import { PRACTICE_KIND_LABELS } from '@/features/practice/types';
 
 const scaleById = new Map(BIG_FIVE_FULL.scales.map((s) => [s.id, s]));
 
@@ -65,6 +67,35 @@ export interface AppState {
     /** 最近学んだトピック */
     recent: string[];
   };
+  practice: {
+    total: number;
+    /** 直近 7 日の練習の回数 */
+    last7days: number;
+    /** 最近の練習（種類・場面・得点） */
+    recent: { kind: string; title?: string; score?: string; date: string }[];
+  };
+}
+
+async function practiceSnapshot(now: number): Promise<AppState['practice']> {
+  const logs = await db.logs.orderBy('createdAt').reverse().toArray();
+  return {
+    total: logs.length,
+    last7days: logs.filter((l) => l.createdAt > now - 7 * 86400000).length,
+    recent: logs.slice(0, 3).map((l) => ({
+      kind: PRACTICE_KIND_LABELS[l.kind],
+      title:
+        l.kind === 'roleplay' || l.kind === 'ai-roleplay'
+          ? getScenario(l.data.scenarioId)?.title
+          : undefined,
+      score:
+        l.kind === 'roleplay'
+          ? `${l.data.score}/${l.data.maxScore}`
+          : l.kind === 'ai-roleplay' && l.data.feedback?.score !== undefined
+            ? `${l.data.feedback.score}/100`
+            : undefined,
+      date: new Date(l.createdAt).toISOString().slice(0, 10),
+    })),
+  };
 }
 
 async function learningSummary(now: number): Promise<AppState['learning']> {
@@ -96,6 +127,7 @@ export async function buildAppState(page: string): Promise<AppState> {
       latestBigFive: latest ? summarizeBigFive(latest) : null,
     },
     learning: await learningSummary(now),
+    practice: await practiceSnapshot(now),
   };
 }
 

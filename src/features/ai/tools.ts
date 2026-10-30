@@ -34,6 +34,11 @@ export const TOOL_DECLARATIONS: ToolDeclaration[] = [
     },
   },
   {
+    name: 'get_practice_summary',
+    description:
+      '練習（ロールプレイ・考え方の整理・3 つのよいこと・習慣プラン）の記録を集計する。週ごとの回数、ロールプレイの得点、考え方の整理で気持ちがどれだけ軽くなったか、よく出る考え方のくせ',
+  },
+  {
     name: 'compare_assessments',
     description: '最新と 1 つ前の性格診断を比べ、変化の大きい側面を返す',
   },
@@ -43,6 +48,7 @@ export const TOOL_LABELS: Record<string, string> = {
   list_assessments: '診断の一覧を確認中…',
   get_facet_scores: '側面の得点を確認中…',
   compare_assessments: '前回との違いを計算中…',
+  get_practice_summary: '練習の記録を集計中…',
 };
 
 const scaleById = new Map(BIG_FIVE_FULL.scales.map((s) => [s.id, s]));
@@ -102,6 +108,10 @@ export async function executeTool(call: ToolCallInfo): Promise<JsonValue> {
         })),
         note: '10 以内の変化は、その日の気分などによる揺れの範囲かもしれない',
       };
+    }
+    case 'get_practice_summary': {
+      const summary = await analysis().practiceSummary(await db.logs.toArray());
+      return summary as unknown as JsonValue;
     }
     default:
       return { error: `unknown tool: ${call.name}` };

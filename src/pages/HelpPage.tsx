@@ -12,6 +12,7 @@ import {
   Bot,
   Cpu,
   GraduationCap,
+  Dumbbell,
 } from 'lucide-react';
 import { PageBody, PageHeader } from '@/app/PageHeader';
 import { PILLAR_ITEMS } from '@/app/navItems';
@@ -157,6 +158,26 @@ export default function HelpPage() {
           </Body>
         </Section>
 
+        <Section collapsible title="練習（ロールプレイ・トレーニング）" icon={<Dumbbell />}>
+          <Body>
+            <p>
+              <strong>場面ロールプレイ</strong>
+              ：断る・ミスを報告する・違う意見を言う・話を聴く、などの場面を、選択肢を選んで練習します。選ぶたびにアプリが解説し、最後に点数を出します（AI
+              不要）。
+            </p>
+            <p>
+              <strong>AI と自由に</strong>：AI
+              が相手役を演じ、自分の言葉で返して練習します。「終えてふりかえる」を押すと、キャラクターが良かったところ・次に試すこと・言い換えの例を返します（形の決まったデータで受け取り、アプリが確かめて表示します）。
+            </p>
+            <p>
+              <strong>改善トレーニング</strong>：考え方の整理（リフレーミング。AI
+              と一緒に別の見方を考えることも）、3
+              つのよいこと、小さな習慣プランのワークシート。記録は「ふりかえる →
+              練習の記録」で集計できます。
+            </p>
+          </Body>
+        </Section>
+
         <Section collapsible title="Grow タイプ（16 タイプ）" icon={<Shapes />}>
           <Body>
             <p>
@@ -256,7 +277,7 @@ export default function HelpPage() {
         <Section collapsible title="これからの予定" icon={<Sparkles />}>
           <Body>
             <ul className="list-disc space-y-1 pl-5">
-              <li>練習：場面ロールプレイ・改善トレーニング</li>
+              <li>日々のチェックイン（気分・エネルギー）と、その分析</li>
               <li>適性・興味（RIASEC）・価値観・認知のくせの診断</li>
             </ul>
           </Body>
