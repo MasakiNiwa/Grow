@@ -8,6 +8,7 @@ import {
   ListTree,
   Network,
   UserRound,
+  CalendarRange,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -58,6 +59,14 @@ export const ANALYSIS_TOOLS: AnalysisTool[] = [
     description: '結果を、特性 → 側面 → 設問ごとの回答まで掘り下げる',
     icon: ListTree,
     component: lazy(() => import('./DrillTool')),
+  },
+  {
+    id: 'weekly',
+    group: 'daily',
+    title: '週のレポート',
+    description: '1 週間の記録のまとめとハイライト。キャラクターのコメントも',
+    icon: CalendarRange,
+    component: lazy(() => import('./WeeklyTool')),
   },
   {
     id: 'condition',

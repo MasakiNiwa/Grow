@@ -3,6 +3,7 @@ import { scoreAnswers } from '@/features/assess/scoring';
 import type { AssessmentResult, ScaleScore } from '@/features/assess/types';
 import type { PracticeLog, PracticeKind } from '@/features/practice/types';
 import { conditionSummary, correlationMatrix, dailyTable, learningByCategory } from './condition';
+import { weeklyReport } from './weekly';
 
 /**
  * 分析の計算（純粋な関数）。Worker（analysis.worker.ts）から呼ぶほか、Worker が使えない環境ではそのまま使う。
@@ -151,5 +152,6 @@ export const analysisApi = {
   dailyTable,
   correlationMatrix,
   learningByCategory,
+  weeklyReport,
 };
 export type AnalysisApi = typeof analysisApi;
