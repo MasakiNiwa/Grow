@@ -159,6 +159,7 @@ html.reduce-motion *::after {
   --viz-3: oklch(0.68 0.11 75);
   --viz-4: oklch(0.6 0.11 15);
   --viz-5: oklch(0.6 0.1 300);
+  --viz-6: oklch(0.6 0.08 210);
   --viz-neutral: #cbd5e1;
 }
 .dark {
@@ -167,6 +168,7 @@ html.reduce-motion *::after {
   --viz-3: oklch(0.72 0.06 75);
   --viz-4: oklch(0.68 0.06 15);
   --viz-5: oklch(0.68 0.06 300);
+  --viz-6: oklch(0.68 0.05 210);
   --viz-neutral: #475569;
 }
 

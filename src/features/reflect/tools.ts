@@ -7,6 +7,7 @@ import {
   LineChart,
   ListTree,
   Network,
+  UserRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -27,10 +28,18 @@ export interface AnalysisTool {
 
 export const ANALYSIS_TOOLS: AnalysisTool[] = [
   {
+    id: 'profile',
+    group: 'self',
+    title: '総合プロフィール',
+    description: '性格・興味・価値観を並べて、そのつながりを見る',
+    icon: UserRound,
+    component: lazy(() => import('./ProfileTool')),
+  },
+  {
     id: 'trend',
     group: 'self',
     title: '推移',
-    description: '性格の特性が、時間とともにどう変わったか',
+    description: '性格・興味・価値観が、時間とともにどう変わったか',
     icon: LineChart,
     component: lazy(() => import('./TrendTool')),
   },

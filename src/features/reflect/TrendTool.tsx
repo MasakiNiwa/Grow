@@ -4,35 +4,36 @@ import { useChartTheme } from '@/components/charts/useChartTheme';
 import { Chip } from '@/components/ui/Chip';
 import { analysis } from '@/lib/analysis/client';
 import { formatDateTime, formatShortDate } from '@/lib/utils/format';
-import { BIG_FIVE_FULL, BIG_FIVE_DOMAINS } from '@/features/assess/instruments/bigfive';
+import { familyInstrument } from '@/features/assess/registry';
 import type { TrendPoint } from '@/lib/analysis/analysis';
 import { EmptyResults } from './EmptyResults';
-import { useBigFiveResults } from './useResults';
+import { FamilyPicker } from './FamilyPicker';
+import { useFamilyResults, useReflectFamily } from './useResults';
 
-const scaleLabel = new Map(BIG_FIVE_FULL.scales.map((s) => [s.id, s.label]));
-
-/** 推移: 5 つの特性（または選んだ特性の側面）の折れ線 */
+/** 推移: 診断のまとまりごとに、上位の尺度（または選んだ尺度の下位）の折れ線 */
 export default function TrendTool() {
-  const results = useBigFiveResults();
+  const family = useReflectFamily((s) => s.family);
+  const inst = familyInstrument(family);
+  const results = useFamilyResults(family);
+  const scaleLabel = useMemo(() => new Map(inst.scales.map((s) => [s.id, s.label])), [inst]);
+  const domains = useMemo(() => inst.scales.filter((s) => !s.parent).map((s) => s.id), [inst]);
   const theme = useChartTheme();
   const [points, setPoints] = useState<TrendPoint[]>([]);
-  const [focus, setFocus] = useState<string | null>(null);
+  const [picked, setFocus] = useState<string | null>(null);
+  // まとまりを変えたら、ほかのまとまりの選択は無視する
+  const focus = picked && domains.includes(picked) ? picked : null;
 
   useEffect(() => {
     if (!results) return;
-    void analysis().trend(results, 'bigfive').then(setPoints);
-  }, [results]);
+    void analysis().trend(results, family).then(setPoints);
+  }, [results, family]);
 
-  const scaleIds = focus
-    ? BIG_FIVE_FULL.scales.filter((s) => s.parent === focus).map((s) => s.id)
-    : BIG_FIVE_DOMAINS;
+  const scaleIds = focus ? inst.scales.filter((s) => s.parent === focus).map((s) => s.id) : domains;
 
   const option = useMemo(() => {
     if (!theme) return null;
     return {
-      color: focus
-        ? [theme.series[BIG_FIVE_DOMAINS.indexOf(focus)], ...theme.series]
-        : theme.series,
+      color: focus ? [theme.series[domains.indexOf(focus)], ...theme.series] : theme.series,
       grid: { left: 8, right: 16, top: 40, bottom: 8, containLabel: true },
       legend: { top: 0, textStyle: { color: theme.text }, type: 'scroll' },
       tooltip: {
@@ -73,18 +74,27 @@ export default function TrendTool() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, points, focus]);
 
-  if (results && results.length === 0) return <EmptyResults />;
+  if (results && results.length === 0)
+    return (
+      <div className="space-y-3">
+        <FamilyPicker />
+        <EmptyResults />
+      </div>
+    );
   return (
     <div className="space-y-3">
+      <FamilyPicker />
       <div className="flex flex-wrap gap-1.5">
         <Chip active={focus === null} onClick={() => setFocus(null)}>
-          5 つの特性
+          全体
         </Chip>
-        {BIG_FIVE_DOMAINS.map((d) => (
-          <Chip key={d} active={focus === d} onClick={() => setFocus(d)}>
-            {scaleLabel.get(d)}の側面
-          </Chip>
-        ))}
+        {domains
+          .filter((d) => inst.scales.some((s) => s.parent === d))
+          .map((d) => (
+            <Chip key={d} active={focus === d} onClick={() => setFocus(d)}>
+              {scaleLabel.get(d)}の内訳
+            </Chip>
+          ))}
       </div>
       {option && <EChart option={option} ariaLabel="特性の推移のグラフ" className="h-80" />}
       {points.length === 1 && (
