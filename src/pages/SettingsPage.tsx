@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { ClipboardList, Database, Palette, RotateCcw } from 'lucide-react';
+import {
+  Bot,
+  ChevronRight,
+  ClipboardList,
+  Cpu,
+  Database,
+  Palette,
+  RotateCcw,
+  Users,
+} from 'lucide-react';
+import { Link } from 'wouter';
 import { toast } from 'sonner';
 import { PageBody, PageHeader } from '@/app/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -18,14 +28,40 @@ import {
   restoreBackup,
   type Backup,
 } from '@/lib/db/backup';
+import { PersonaPicker } from '@/features/ai/PersonaPicker';
+import { CUSTOM_PERSONA_ID, PERSONAS } from '@/features/ai/personas';
+import { useChat } from '@/features/chat/chatStore';
+import { ModelStatusChip } from '@/features/engine/ModelStatusChip';
+import {
+  BACKEND_SETTING_LABELS,
+  REACTION_LABELS,
+  USER_AGE_LABELS,
+  USER_GENDER_LABELS,
+} from '@/features/settings/labels';
 import {
   portableSettings,
   sanitizeSettings,
   useSettings,
+  type BackendSetting,
   type DarkPalette,
+  type ReactionMode,
+  type UserAge,
+  type UserGender,
   type ItemsPerPage,
   type ThemeSetting,
 } from '@/features/settings/settingsStore';
+
+const textareaClass =
+  'w-full rounded-xl border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900';
+
+const CONTEXT_OPTIONS = [2048, 4096, 8192, 16384, 32768].map((n) => ({
+  value: String(n),
+  label: `${n.toLocaleString()} トークン`,
+}));
+
+function options<T extends string>(labels: Record<T, string>) {
+  return (Object.keys(labels) as T[]).map((value) => ({ value, label: labels[value] }));
+}
 
 const THEME_OPTIONS: { value: ThemeSetting; label: string }[] = [
   { value: 'system', label: '端末に合わせる' },
@@ -151,6 +187,168 @@ export default function SettingsPage() {
           </Field>
         </Section>
 
+        <Section
+          collapsible
+          title="AI の接続先とモデル"
+          icon={<Bot />}
+          description="クラウド AI の API キー・端末内のモデル・場面ごとの AI"
+        >
+          <Link
+            href="/ai"
+            className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 sm:px-5 dark:hover:bg-slate-800/40"
+          >
+            <span className="flex-1 text-sm font-medium">AI の設定を開く</span>
+            <ModelStatusChip plain className="max-w-48" />
+            <ChevronRight className="size-4 text-slate-400" />
+          </Link>
+        </Section>
+
+        <Section
+          collapsible
+          title="AI のキャラクター"
+          icon={<Users />}
+          description="相棒と、別の視点から一言添える 2 人目を選べます"
+        >
+          <Field label="相棒（メインのキャラクター）" stacked>
+            <PersonaPicker value={s.persona} onChange={(v) => update({ persona: v })} />
+          </Field>
+          {s.persona === CUSTOM_PERSONA_ID && (
+            <Field label="カスタムの性格" hint="口調・性格・話し方を自由に書いてください" stacked>
+              <textarea
+                value={s.customPersona}
+                onChange={(e) => update({ customPersona: e.target.value })}
+                rows={3}
+                placeholder="例: 関西弁で話す、明るくて面倒見のいい先輩"
+                className={textareaClass}
+              />
+            </Field>
+          )}
+          <Field
+            label="2 人目のキャラクター"
+            hint="チャットで相棒が答えたあと、別の視点から 1〜2 文を添えます（AI の生成が 1 回増えます）"
+            htmlFor="second-persona"
+          >
+            <Select
+              id="second-persona"
+              value={s.secondPersona}
+              onChange={(v) => update({ secondPersona: v })}
+              options={[
+                { value: '', label: 'なし' },
+                ...PERSONAS.filter((p) => p.id !== s.persona).map((p) => ({
+                  value: p.id,
+                  label: `${p.emoji} ${p.name}`,
+                })),
+              ]}
+              className="w-40"
+            />
+          </Field>
+          <Field label="あなたの性別" htmlFor="user-gender" hint="任意。話題や例の参考にします">
+            <Select
+              id="user-gender"
+              value={s.userGender}
+              onChange={(v) => update({ userGender: v as UserGender })}
+              options={options(USER_GENDER_LABELS)}
+              className="w-36"
+            />
+          </Field>
+          <Field label="あなたの年齢層" htmlFor="user-age" hint="任意">
+            <Select
+              id="user-age"
+              value={s.userAge}
+              onChange={(v) => update({ userAge: v as UserAge })}
+              options={options(USER_AGE_LABELS)}
+              className="w-36"
+            />
+          </Field>
+          <Field label="AI への追加の指示" hint="すべての応答に付け加えます" stacked>
+            <textarea
+              value={s.extraInstructions}
+              onChange={(e) => update({ extraInstructions: e.target.value })}
+              rows={2}
+              placeholder="例: 具体的な職場の例で説明してほしい"
+              className={textareaClass}
+            />
+          </Field>
+        </Section>
+
+        <Section collapsible title="AI のふるまい" icon={<Bot />}>
+          <Field label="ひとこと" htmlFor="reaction" hint="診断を終えたときなどのリアクション">
+            <Select
+              id="reaction"
+              value={s.reaction}
+              onChange={(v) => update({ reaction: v as ReactionMode })}
+              options={options(REACTION_LABELS)}
+              className="w-44"
+            />
+          </Field>
+          <Field
+            label="アプリの状態を AI に伝える"
+            htmlFor="share-state"
+            hint="最新の診断の結果の要約（タイプ・5 特性の得点など）を、構造化データとして会話に添えます"
+          >
+            <Switch
+              id="share-state"
+              checked={s.shareAppState}
+              onChange={(v) => update({ shareAppState: v })}
+            />
+          </Field>
+          <Field
+            label="AI に記録を調べさせる"
+            htmlFor="use-tools"
+            hint="AI がツール（関数呼び出し）で診断の記録や側面の得点を調べてから答えます"
+          >
+            <Switch id="use-tools" checked={s.useTools} onChange={(v) => update({ useTools: v })} />
+          </Field>
+          <Field
+            label="Enter で送信"
+            htmlFor="enter-send"
+            hint="オフのときは Shift なしの Enter で改行します"
+          >
+            <Switch
+              id="enter-send"
+              checked={s.enterToSend}
+              onChange={(v) => update({ enterToSend: v })}
+            />
+          </Field>
+        </Section>
+
+        <Section
+          collapsible
+          title="端末内の AI（エンジン）"
+          icon={<Cpu />}
+          description="変更後はモデルの読み込み直しが必要です"
+        >
+          <Field label="実行方法" htmlFor="backend">
+            <Select
+              id="backend"
+              value={s.backend}
+              onChange={(v) => update({ backend: v as BackendSetting })}
+              options={options(BACKEND_SETTING_LABELS)}
+              className="w-40"
+            />
+          </Field>
+          <Field
+            label="文脈長"
+            htmlFor="context"
+            hint="長いほど長い会話を覚えますが、メモリを使います"
+          >
+            <Select
+              id="context"
+              value={String(s.maxNumTokens)}
+              onChange={(v) => update({ maxNumTokens: Number(v) })}
+              options={CONTEXT_OPTIONS}
+              className="w-40"
+            />
+          </Field>
+          <Field label="起動時に前回のモデルを読み込む" htmlFor="auto-load">
+            <Switch
+              id="auto-load"
+              checked={s.autoLoadLastModel}
+              onChange={(v) => update({ autoLoadLastModel: v })}
+            />
+          </Field>
+        </Section>
+
         <Section collapsible title="診断" icon={<ClipboardList />}>
           <Field label="1 ページの設問の数" htmlFor="per-page">
             <Select
@@ -189,7 +387,7 @@ export default function SettingsPage() {
           </Field>
           <Field
             label="バックアップ"
-            hint={`診断の結果・途中の回答・設定を JSON ファイルに書き出します${s.lastBackupAt ? `（前回: ${formatDateTime(s.lastBackupAt)}）` : ''}`}
+            hint={`診断の結果・途中の回答・チャット・設定を JSON ファイルに書き出します${s.lastBackupAt ? `（前回: ${formatDateTime(s.lastBackupAt)}）` : ''}`}
           >
             <Button size="sm" onClick={() => void backup()}>
               書き出す
@@ -222,7 +420,10 @@ export default function SettingsPage() {
               }}
             />
           </Field>
-          <Field label="すべてのデータを削除" hint="診断の結果・途中の回答を削除します">
+          <Field
+            label="すべてのデータを削除"
+            hint="診断の結果・途中の回答・チャットを削除します（AI のモデルとキーは残ります）"
+          >
             <Button size="sm" variant="danger" onClick={() => setConfirm('all')}>
               削除
             </Button>
@@ -252,6 +453,7 @@ export default function SettingsPage() {
           if (!pendingRestore) return;
           try {
             await restoreBackup(pendingRestore);
+            await useChat.getState().reload();
             update(sanitizeSettings(pendingRestore.settings));
             toast.success('復元しました');
           } catch (e) {
@@ -263,13 +465,14 @@ export default function SettingsPage() {
       <ConfirmDialog
         open={confirm === 'all'}
         title="すべてのデータを削除しますか？"
-        description="診断の結果と途中の回答をすべて削除します。必要ならバックアップを書き出してください。"
+        description="診断の結果・途中の回答・チャットをすべて削除します。必要ならバックアップを書き出してください。"
         confirmLabel="削除"
         danger
         onClose={() => setConfirm(null)}
         onConfirm={async () => {
           setConfirm(null);
           await clearAllData();
+          await useChat.getState().clear();
           toast.success('すべてのデータを削除しました');
         }}
       />

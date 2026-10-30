@@ -5,6 +5,8 @@ import {
   Compass,
   Dumbbell,
   House,
+  MessageCircleHeart,
+  Sparkles,
   Settings,
   type LucideIcon,
 } from 'lucide-react';
@@ -49,6 +51,8 @@ export const PILLAR_ITEMS: NavItem[] = [
   },
 ];
 
+export const CHAT_ITEM: NavItem = { to: '/chat', label: 'AI と話す', icon: MessageCircleHeart };
+export const AI_ITEM: NavItem = { to: '/ai', label: 'AI の設定', icon: Sparkles };
 export const HOME_ITEM: NavItem = { to: '/', label: 'ホーム', icon: House };
 export const SETTINGS_ITEM: NavItem = { to: '/settings', label: '設定', icon: Settings };
 export const HELP_ITEM: NavItem = { to: '/help', label: 'ヘルプ', icon: CircleHelp };
@@ -56,8 +60,8 @@ export const HELP_ITEM: NavItem = { to: '/help', label: 'ヘルプ', icon: Circl
 /** スマホの下部ナビ（ヘルプはヘッダーにあるので入れない） */
 export const BOTTOM_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS, SETTINGS_ITEM];
 /** PC のサイドバー */
-export const SIDE_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS];
-export const SIDE_SUB_ITEMS: NavItem[] = [SETTINGS_ITEM, HELP_ITEM];
+export const SIDE_ITEMS: NavItem[] = [HOME_ITEM, ...PILLAR_ITEMS, CHAT_ITEM];
+export const SIDE_SUB_ITEMS: NavItem[] = [AI_ITEM, SETTINGS_ITEM, HELP_ITEM];
 
 export function isActivePath(location: string, to: string): boolean {
   return to === '/' ? location === '/' : location === to || location.startsWith(`${to}/`);

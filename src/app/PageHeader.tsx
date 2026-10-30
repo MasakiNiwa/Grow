@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils/cn';
-import { HELP_ITEM } from './navItems';
+import { CHAT_ITEM, HELP_ITEM } from './navItems';
 import { ThemeToggle } from './ThemeToggle';
 
 interface PageHeaderProps {
@@ -29,6 +29,22 @@ function HelpLink() {
   );
 }
 
+/** スマホ用: AI と話す（PC はサイドバーにある。チャット画面では出さない） */
+function ChatLink() {
+  const [location] = useLocation();
+  if (location === CHAT_ITEM.to) return null;
+  return (
+    <Link
+      href={CHAT_ITEM.to}
+      aria-label={CHAT_ITEM.label}
+      title={CHAT_ITEM.label}
+      className="flex size-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-200/70 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
+    >
+      <CHAT_ITEM.icon className="size-5" />
+    </Link>
+  );
+}
+
 /**
  * ページのヘッダー。右端には、どのページでも「ダークモードの切り替え」と「ヘルプ」を置く。
  * （GitHub へのリンクはヘッダーに置かない方針。リポジトリへのリンクはヘルプページにある）
@@ -51,6 +67,7 @@ export function PageHeader({ title, back, actions }: PageHeaderProps) {
         <h1 className={cn('min-w-0 truncate text-base font-semibold sm:text-lg')}>{title}</h1>
         <div className="ml-auto flex items-center gap-0.5">
           {actions}
+          <ChatLink />
           <ThemeToggle />
           <HelpLink />
         </div>

@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { AppLayout } from '@/app/AppLayout';
+import { useStartup } from '@/app/useStartup';
 import { useTheme } from '@/app/useTheme';
 import HomePage from '@/pages/HomePage';
 import { useSettings } from '@/features/settings/settingsStore';
@@ -14,11 +15,14 @@ const ResultPage = lazy(() => import('@/pages/ResultPage'));
 const LearnPage = lazy(() => import('@/pages/LearnPage'));
 const PracticePage = lazy(() => import('@/pages/PracticePage'));
 const ReflectPage = lazy(() => import('@/pages/ReflectPage'));
+const ChatPage = lazy(() => import('@/pages/ChatPage'));
+const AiPage = lazy(() => import('@/pages/AiPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const HelpPage = lazy(() => import('@/pages/HelpPage'));
 
 export default function App() {
   useTheme();
+  useStartup();
   const theme = useSettings((s) => s.theme);
   return (
     // GitHub Pages ではサーバー側のルーティングができないためハッシュルーティングを使う
@@ -32,6 +36,8 @@ export default function App() {
             <Route path="/learn" component={LearnPage} />
             <Route path="/practice" component={PracticePage} />
             <Route path="/reflect/:tool?" component={ReflectPage} />
+            <Route path="/chat" component={ChatPage} />
+            <Route path="/ai" component={AiPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/help" component={HelpPage} />
             <Route component={HomePage} />
