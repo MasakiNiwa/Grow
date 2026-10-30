@@ -8,6 +8,7 @@ import { levelOf, LEVEL_LABELS, scoreMap } from '@/features/assess/scoring';
 import { growTypeOf } from '@/features/assess/instruments/bigfiveTypes';
 import { BIG_FIVE_FULL } from '@/features/assess/instruments/bigfive';
 import type { AssessmentResult } from '@/features/assess/types';
+import { allTopics } from '@/features/learn/topics';
 
 const scaleById = new Map(BIG_FIVE_FULL.scales.map((s) => [s.id, s]));
 
@@ -55,18 +56,46 @@ export interface AppState {
     count: number;
     latestBigFive: ReturnType<typeof summarizeBigFive> | null;
   };
+  learning: {
+    /** クイズまで終えたトピックの数・全体の数 */
+    learned: number;
+    total: number;
+    /** 今日復習するトピック */
+    dueToday: string[];
+    /** 最近学んだトピック */
+    recent: string[];
+  };
+}
+
+async function learningSummary(now: number): Promise<AppState['learning']> {
+  const [topics, progress] = await Promise.all([allTopics(), db.progress.toArray()]);
+  const title = new Map(topics.map((t) => [t.id, t.title]));
+  return {
+    learned: progress.filter((p) => p.reviews.length > 0 && title.has(p.topicId)).length,
+    total: topics.length,
+    dueToday: progress
+      .filter((p) => p.due !== undefined && p.due <= now && title.has(p.topicId))
+      .map((p) => title.get(p.topicId)!),
+    recent: progress
+      .filter((p) => p.readAt && title.has(p.topicId))
+      .sort((a, b) => b.readAt! - a.readAt!)
+      .slice(0, 3)
+      .map((p) => title.get(p.topicId)!),
+  };
 }
 
 export async function buildAppState(page: string): Promise<AppState> {
   const results = await db.results.orderBy('createdAt').toArray();
   const latest = [...results].reverse().find((r) => scaleFamily(r.instrumentId) === 'bigfive');
+  const now = Date.now();
   return {
-    now: new Date().toISOString().slice(0, 16),
+    now: new Date(now).toISOString().slice(0, 16),
     page,
     assessments: {
       count: results.length,
       latestBigFive: latest ? summarizeBigFive(latest) : null,
     },
+    learning: await learningSummary(now),
   };
 }
 
