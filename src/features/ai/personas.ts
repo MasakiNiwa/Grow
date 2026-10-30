@@ -105,19 +105,63 @@ export const PERSONAS: Persona[] = [
   },
 ];
 
+/** 自分で作るキャラクター（相棒用と 2 人目用の 2 つ） */
 export const CUSTOM_PERSONA_ID = 'custom';
+export const CUSTOM2_PERSONA_ID = 'custom2';
 
-export function getPersona(id: string, customStyle = ''): Persona {
+/** カスタムのキャラクターの設定（名前・絵文字・性格） */
+export interface CustomPersonaFields {
+  customPersona: string;
+  customName: string;
+  customEmoji: string;
+  secondCustomPersona: string;
+  secondCustomName: string;
+  secondCustomEmoji: string;
+}
+
+function customPersona(
+  id: string,
+  name: string,
+  emoji: string,
+  style: string,
+  fallbackName: string,
+  fallbackEmoji: string,
+): Persona {
+  const base = PERSONAS[0];
+  return {
+    ...base,
+    id,
+    name: name.trim() || fallbackName,
+    emoji: emoji.trim() || fallbackEmoji,
+    tagline: '自分で決めた性格',
+    style: style.trim()
+      ? `あなたは「${name.trim() || fallbackName}」です。${style.trim()}`
+      : base.style,
+    viewpoint: style.trim() ? `「${name.trim() || fallbackName}」らしい視点` : base.viewpoint,
+  };
+}
+
+/** キャラクターを id から取り出す（カスタムは設定の名前・絵文字・性格を使う） */
+export function getPersona(id: string, c: Partial<CustomPersonaFields> = {}): Persona {
   if (id === CUSTOM_PERSONA_ID) {
-    const base = PERSONAS[0];
-    return {
-      ...base,
-      id: CUSTOM_PERSONA_ID,
-      name: 'カスタム',
-      emoji: '✨',
-      tagline: '自分で決めた性格',
-      style: customStyle.trim() || base.style,
-    };
+    return customPersona(
+      id,
+      c.customName ?? '',
+      c.customEmoji ?? '',
+      c.customPersona ?? '',
+      'カスタム',
+      '✨',
+    );
+  }
+  if (id === CUSTOM2_PERSONA_ID) {
+    return customPersona(
+      id,
+      c.secondCustomName ?? '',
+      c.secondCustomEmoji ?? '',
+      c.secondCustomPersona ?? '',
+      'カスタム 2',
+      '💫',
+    );
   }
   return PERSONAS.find((p) => p.id === id) ?? PERSONAS[0];
 }

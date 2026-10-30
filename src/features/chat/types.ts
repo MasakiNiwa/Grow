@@ -10,6 +10,8 @@ export interface ChatRecord {
   speaker?: string;
   /** 2 人目のキャラクターの一言（メインの会話の履歴には入れない） */
   aside?: boolean;
+  /** 応答に使った AI（例: "Gemini API · 2.5-flash"） */
+  model?: string;
   thinking?: string;
   tools?: string[];
   error?: string;

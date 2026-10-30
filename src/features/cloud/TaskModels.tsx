@@ -19,14 +19,20 @@ const TASKS: { task: AiTask; label: string; hint: string }[] = [
     hint: '診断を終えたときなどのリアクション。回数が多いので、軽いモデル・無料のモデルがおすすめ',
   },
   { task: 'assist', label: '解説', hint: '診断の結果や考え方の解説など' },
-  { task: 'chat', label: 'チャット', hint: 'AI と話す画面の会話（2 人目のキャラクターも）' },
+  { task: 'chat', label: 'チャット（相棒）', hint: 'AI と話す画面の、相棒の応答' },
+  {
+    task: 'aside',
+    label: '2 人目のキャラクター',
+    hint: '相棒のあとの一言。相棒と別のモデルにすると、話し方や考え方に本当の個性が出ます',
+  },
   { task: 'roleplay', label: 'ロールプレイ', hint: '練習の場面ロールプレイ' },
   { task: 'review', label: '分析へのコメント', hint: 'ふりかえるの分析へのコメント' },
 ];
 
 const DEFAULT = 'default';
 
-function TaskRow({ task, label, hint }: (typeof TASKS)[number]) {
+/** 1 つの応答の種類の接続先とモデル（設定のキャラクターの欄でも使う） */
+export function TaskRow({ task, label, hint }: { task: AiTask; label: string; hint: string }) {
   const route = useSettings((s) => s.taskModels[task]);
   const taskModels = useSettings((s) => s.taskModels);
   const cloudModels = useSettings((s) => s.cloudModels);

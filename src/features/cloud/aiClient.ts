@@ -71,6 +71,27 @@ export function taskRoute(
     : null;
 }
 
+/**
+ * その種類の応答に実際に使われる AI の短い名前（例: "Gemini API · 2.5-flash"・"端末内 · gemma-4-E2B-it-web"）。
+ * generate の振り分けと同じ順で決める（応答ごとの AI → いつもの AI → 端末内）
+ */
+export function modelLabel(task?: AiTask): string {
+  const route = taskRoute(task);
+  const local = () =>
+    `端末内 · ${useEngine.getState().model?.name.replace(/\.litertlm$/, '') ?? ''}`;
+  if (route?.kind === 'local') return local();
+  if (route?.kind === 'cloud') {
+    const info = CLOUD_PROVIDERS[route.provider];
+    return `${info.label} · ${info.shortModel(route.model)}`;
+  }
+  const s = useSettings.getState();
+  const p = asCloud(s.aiProvider);
+  const model = p ? s.cloudModels[p] : undefined;
+  if (p && model && getUnlockedKey(p))
+    return `${CLOUD_PROVIDERS[p].label} · ${CLOUD_PROVIDERS[p].shortModel(model)}`;
+  return local();
+}
+
 export const ai = {
   async generate(
     req: GenerateRequest,

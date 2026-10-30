@@ -47,6 +47,7 @@ const chat = z.object({
   context: z.string().optional(),
   speaker: z.string().optional(),
   aside: z.boolean().optional(),
+  model: z.string().optional(),
   thinking: z.string().optional(),
   tools: z.array(z.string()).optional(),
   error: z.string().optional(),

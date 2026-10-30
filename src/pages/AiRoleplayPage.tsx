@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ClearButton } from '@/components/ui/ClearButton';
 import { errorMessage } from '@/lib/utils/format';
-import { getPersona } from '@/features/ai/personas';
+import { useMainPersona } from '@/features/ai/usePersona';
 import { cancelAi } from '@/features/ai/oneshot';
 import { useAiReady } from '@/features/cloud/aiClient';
 import { ModelStatusChip } from '@/features/engine/ModelStatusChip';
@@ -15,15 +15,11 @@ import { Bubble } from '@/features/practice/Bubble';
 import { partnerReply, roleplayFeedback } from '@/features/practice/aiRoleplay';
 import { getScenario, saveLog } from '@/features/practice/practiceData';
 import type { AiRoleplayData, RoleplayFeedback, Scenario } from '@/features/practice/types';
-import { useSettings } from '@/features/settings/settingsStore';
 
 type Turn = { role: 'user' | 'partner'; text: string };
 
 function Session({ scenario }: { scenario: Scenario }) {
-  const persona = getPersona(
-    useSettings((s) => s.persona),
-    useSettings((s) => s.customPersona),
-  );
+  const persona = useMainPersona();
   const ready = useAiReady();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [streaming, setStreaming] = useState<string | null>(null);

@@ -48,8 +48,14 @@ export interface Settings extends Omit<ConversationSettings, 'systemPrompt'> {
   persona: string;
   /** 2 人目のキャラクター（空ならいない）。チャットで別の視点から一言添える */
   secondPersona: string;
-  /** persona = 'custom' のときの性格の説明 */
+  /** カスタムの相棒（persona = 'custom'）の性格・名前・絵文字 */
   customPersona: string;
+  customName: string;
+  customEmoji: string;
+  /** カスタムの 2 人目（secondPersona = 'custom2'）の性格・名前・絵文字 */
+  secondCustomPersona: string;
+  secondCustomName: string;
+  secondCustomEmoji: string;
   userGender: UserGender;
   userAge: UserAge;
   /** ユーザーが追加する指示（システムプロンプトの末尾に付ける） */
@@ -96,6 +102,11 @@ export const DEFAULT_SETTINGS: Settings = {
   persona: 'partner',
   secondPersona: '',
   customPersona: '',
+  customName: '',
+  customEmoji: '',
+  secondCustomPersona: '',
+  secondCustomName: '',
+  secondCustomEmoji: '',
   userGender: '',
   userAge: '',
   extraInstructions: '',
